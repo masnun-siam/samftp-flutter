@@ -1,12 +1,12 @@
 import 'package:auto_route/annotations.dart';
+import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_meedu_videoplayer/meedu_player.dart';
 import 'package:html_character_entities/html_character_entities.dart';
+import 'package:video_player/video_player.dart';
 
 @RoutePage()
 class VideoPlayerPage extends StatefulWidget {
-  const VideoPlayerPage({Key? key, required this.url, required this.title})
-      : super(key: key);
+  const VideoPlayerPage({super.key, required this.url, required this.title});
   final String url;
   final String title;
 
@@ -15,51 +15,50 @@ class VideoPlayerPage extends StatefulWidget {
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
-  final _meeduPlayerController = MeeduPlayerController(
-    controlsStyle: ControlsStyle.primary,
-  );
+  late final VideoPlayerController controller;
+  late final ChewieController chewieController;
+
+  bool isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-// The following line will enable the Android and iOS wakelock.
+    _initializeVideoPlayer();
+  }
 
-    // Wait until the first render the avoid possible errors when use an context while the view is rendering
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _init();
+  void _initializeVideoPlayer() async {
+    controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    await controller.initialize();
+    chewieController = ChewieController(
+      videoPlayerController: controller,
+      autoPlay: true,
+      looping: false,
+    );
+
+    setState(() {
+      isInitialized = true;
     });
   }
 
   @override
   void dispose() {
-    // The next line disables the wakelock again.
-    _meeduPlayerController.dispose(); // release the video player
+    controller.dispose();
+    chewieController.dispose();
     super.dispose();
-  }
-
-  /// play a video from network
-  _init() {
-    _meeduPlayerController.setDataSource(
-      DataSource(
-        type: DataSourceType.network,
-        source: widget.url,
-      ),
-      autoplay: true,
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(HtmlCharacterEntities.decode(Uri.decodeFull(widget.title).split('/').last)),
+        title: Text(HtmlCharacterEntities.decode(
+            Uri.decodeFull(widget.title).split('/').last)),
       ),
       body: SafeArea(
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: MeeduVideoPlayer(
-            controller: _meeduPlayerController,
-          ),
+        child: Center(
+          child: isInitialized
+              ? Chewie(controller: chewieController)
+              : const CircularProgressIndicator(),
         ),
       ),
     );

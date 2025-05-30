@@ -6,11 +6,11 @@ import 'package:responsive_builder/responsive_builder.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton({
-    Key? key,
+    super.key,
     required this.title,
     required this.onPressed,
     required this.url,
-  }) : super(key: key);
+  });
 
   final String title;
   final VoidCallback onPressed;
@@ -29,9 +29,6 @@ class AppButton extends StatelessWidget {
             ),
         },
         builder: (context, snapshot) {
-          debugPrint(cleanUrl);
-          debugPrint(snapshot.data?.response?.time.toString());
-          debugPrint(snapshot.data?.error?.message);
           final isSuccess = snapshot.data?.response?.time != null;
           return ResponsiveBuilder(builder: (context, sizingInformation) {
             return InkWell(

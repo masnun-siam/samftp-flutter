@@ -12,7 +12,7 @@ part of 'clickable_model_dto.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$ClickableModelDto {
@@ -21,7 +21,9 @@ mixin _$ClickableModelDto {
   String? get route => throw _privateConstructorUsedError;
   bool? get isFile => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClickableModelDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ClickableModelDtoCopyWith<ClickableModelDto> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -45,6 +47,8 @@ class _$ClickableModelDtoCopyWithImpl<$Res, $Val extends ClickableModelDto>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ClickableModelDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -75,24 +79,26 @@ class _$ClickableModelDtoCopyWithImpl<$Res, $Val extends ClickableModelDto>
 }
 
 /// @nodoc
-abstract class _$$_ClickableModelDtoCopyWith<$Res>
+abstract class _$$ClickableModelDtoImplCopyWith<$Res>
     implements $ClickableModelDtoCopyWith<$Res> {
-  factory _$$_ClickableModelDtoCopyWith(_$_ClickableModelDto value,
-          $Res Function(_$_ClickableModelDto) then) =
-      __$$_ClickableModelDtoCopyWithImpl<$Res>;
+  factory _$$ClickableModelDtoImplCopyWith(_$ClickableModelDtoImpl value,
+          $Res Function(_$ClickableModelDtoImpl) then) =
+      __$$ClickableModelDtoImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String? title, String? subtitle, String? route, bool? isFile});
 }
 
 /// @nodoc
-class __$$_ClickableModelDtoCopyWithImpl<$Res>
-    extends _$ClickableModelDtoCopyWithImpl<$Res, _$_ClickableModelDto>
-    implements _$$_ClickableModelDtoCopyWith<$Res> {
-  __$$_ClickableModelDtoCopyWithImpl(
-      _$_ClickableModelDto _value, $Res Function(_$_ClickableModelDto) _then)
+class __$$ClickableModelDtoImplCopyWithImpl<$Res>
+    extends _$ClickableModelDtoCopyWithImpl<$Res, _$ClickableModelDtoImpl>
+    implements _$$ClickableModelDtoImplCopyWith<$Res> {
+  __$$ClickableModelDtoImplCopyWithImpl(_$ClickableModelDtoImpl _value,
+      $Res Function(_$ClickableModelDtoImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ClickableModelDto
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -101,7 +107,7 @@ class __$$_ClickableModelDtoCopyWithImpl<$Res>
     Object? route = freezed,
     Object? isFile = freezed,
   }) {
-    return _then(_$_ClickableModelDto(
+    return _then(_$ClickableModelDtoImpl(
       title: freezed == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -124,8 +130,8 @@ class __$$_ClickableModelDtoCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_ClickableModelDto extends _ClickableModelDto {
-  _$_ClickableModelDto({this.title, this.subtitle, this.route, this.isFile})
+class _$ClickableModelDtoImpl extends _ClickableModelDto {
+  _$ClickableModelDtoImpl({this.title, this.subtitle, this.route, this.isFile})
       : super._();
 
   @override
@@ -143,10 +149,10 @@ class _$_ClickableModelDto extends _ClickableModelDto {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ClickableModelDto &&
+            other is _$ClickableModelDtoImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.subtitle, subtitle) ||
                 other.subtitle == subtitle) &&
@@ -157,11 +163,13 @@ class _$_ClickableModelDto extends _ClickableModelDto {
   @override
   int get hashCode => Object.hash(runtimeType, title, subtitle, route, isFile);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClickableModelDto
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ClickableModelDtoCopyWith<_$_ClickableModelDto> get copyWith =>
-      __$$_ClickableModelDtoCopyWithImpl<_$_ClickableModelDto>(
+  _$$ClickableModelDtoImplCopyWith<_$ClickableModelDtoImpl> get copyWith =>
+      __$$ClickableModelDtoImplCopyWithImpl<_$ClickableModelDtoImpl>(
           this, _$identity);
 }
 
@@ -170,7 +178,7 @@ abstract class _ClickableModelDto extends ClickableModelDto {
       {final String? title,
       final String? subtitle,
       final String? route,
-      final bool? isFile}) = _$_ClickableModelDto;
+      final bool? isFile}) = _$ClickableModelDtoImpl;
   _ClickableModelDto._() : super._();
 
   @override
@@ -181,8 +189,11 @@ abstract class _ClickableModelDto extends ClickableModelDto {
   String? get route;
   @override
   bool? get isFile;
+
+  /// Create a copy of ClickableModelDto
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$_ClickableModelDtoCopyWith<_$_ClickableModelDto> get copyWith =>
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ClickableModelDtoImplCopyWith<_$ClickableModelDtoImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

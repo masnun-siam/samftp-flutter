@@ -12,7 +12,7 @@ part of 'clickable_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
 mixin _$ClickableModel {
@@ -21,7 +21,9 @@ mixin _$ClickableModel {
   String get route => throw _privateConstructorUsedError;
   bool get isFile => throw _privateConstructorUsedError;
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClickableModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ClickableModelCopyWith<ClickableModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -45,6 +47,8 @@ class _$ClickableModelCopyWithImpl<$Res, $Val extends ClickableModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ClickableModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -75,24 +79,26 @@ class _$ClickableModelCopyWithImpl<$Res, $Val extends ClickableModel>
 }
 
 /// @nodoc
-abstract class _$$_ClickableModelCopyWith<$Res>
+abstract class _$$ClickableModelImplCopyWith<$Res>
     implements $ClickableModelCopyWith<$Res> {
-  factory _$$_ClickableModelCopyWith(
-          _$_ClickableModel value, $Res Function(_$_ClickableModel) then) =
-      __$$_ClickableModelCopyWithImpl<$Res>;
+  factory _$$ClickableModelImplCopyWith(_$ClickableModelImpl value,
+          $Res Function(_$ClickableModelImpl) then) =
+      __$$ClickableModelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String subtitle, String route, bool isFile});
 }
 
 /// @nodoc
-class __$$_ClickableModelCopyWithImpl<$Res>
-    extends _$ClickableModelCopyWithImpl<$Res, _$_ClickableModel>
-    implements _$$_ClickableModelCopyWith<$Res> {
-  __$$_ClickableModelCopyWithImpl(
-      _$_ClickableModel _value, $Res Function(_$_ClickableModel) _then)
+class __$$ClickableModelImplCopyWithImpl<$Res>
+    extends _$ClickableModelCopyWithImpl<$Res, _$ClickableModelImpl>
+    implements _$$ClickableModelImplCopyWith<$Res> {
+  __$$ClickableModelImplCopyWithImpl(
+      _$ClickableModelImpl _value, $Res Function(_$ClickableModelImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ClickableModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -101,7 +107,7 @@ class __$$_ClickableModelCopyWithImpl<$Res>
     Object? route = null,
     Object? isFile = null,
   }) {
-    return _then(_$_ClickableModel(
+    return _then(_$ClickableModelImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -124,8 +130,8 @@ class __$$_ClickableModelCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$_ClickableModel implements _ClickableModel {
-  _$_ClickableModel(
+class _$ClickableModelImpl implements _ClickableModel {
+  _$ClickableModelImpl(
       {required this.title,
       required this.subtitle,
       required this.route,
@@ -146,10 +152,10 @@ class _$_ClickableModel implements _ClickableModel {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ClickableModel &&
+            other is _$ClickableModelImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.subtitle, subtitle) ||
                 other.subtitle == subtitle) &&
@@ -160,11 +166,14 @@ class _$_ClickableModel implements _ClickableModel {
   @override
   int get hashCode => Object.hash(runtimeType, title, subtitle, route, isFile);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ClickableModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ClickableModelCopyWith<_$_ClickableModel> get copyWith =>
-      __$$_ClickableModelCopyWithImpl<_$_ClickableModel>(this, _$identity);
+  _$$ClickableModelImplCopyWith<_$ClickableModelImpl> get copyWith =>
+      __$$ClickableModelImplCopyWithImpl<_$ClickableModelImpl>(
+          this, _$identity);
 }
 
 abstract class _ClickableModel implements ClickableModel {
@@ -172,7 +181,7 @@ abstract class _ClickableModel implements ClickableModel {
       {required final String title,
       required final String subtitle,
       required final String route,
-      required final bool isFile}) = _$_ClickableModel;
+      required final bool isFile}) = _$ClickableModelImpl;
 
   @override
   String get title;
@@ -182,8 +191,11 @@ abstract class _ClickableModel implements ClickableModel {
   String get route;
   @override
   bool get isFile;
+
+  /// Create a copy of ClickableModel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
-  _$$_ClickableModelCopyWith<_$_ClickableModel> get copyWith =>
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ClickableModelImplCopyWith<_$ClickableModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -4,14 +4,12 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   connectivity_plus
-  flutter_meedu_videoplayer
-  fullscreen_window
-  fvp
+  media_kit_libs_windows_video
+  media_kit_video
   screen_brightness_windows
-  screen_retriever
   share_plus
   url_launcher_windows
-  window_manager
+  volume_controller
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

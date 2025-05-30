@@ -3,56 +3,87 @@ description: A new Flutter project.
 publish_to: none
 version: 1.0.0+1
 environment:
-  sdk: '>=3.0.3 <4.0.0'
+  sdk: ">=3.0.3 <4.0.0"
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
   dartz: ^0.10.1
   equatable: ^2.0.5
-  flutter_bloc: ^8.1.3
-  get_it: ^7.6.0
-  connectivity_plus: ^4.0.1
-  internet_connection_checker: ^1.0.0+1
-  http: ^1.0.0
+  flutter_bloc: ^9.1.1
+  get_it: ^8.0.3
+  internet_connection_checker: ^3.0.1
+  # http: ^1.0.0
   shared_preferences: ^2.1.2
   html: ^0.15.4
-  auto_route: ^7.4.0
-  freezed_annotation: ^2.2.0
+  auto_route: ^10.1.0+1
+  freezed_annotation: ^3.0.0
   injectable: ^2.1.2
   dio: ^5.2.1
   # share_plus: ^6.3.4
   html_character_entities: ^1.0.0+1
-  appinio_video_player: ^1.2.1
-  external_video_player_launcher: ^0.0.3
+  external_video_player_launcher:
+    path: packages/external_video_player_launcher
   easy_image_viewer: ^1.2.1
-  mime: ^1.0.4
-  flutter_meedu_videoplayer: ^4.3.1
-  # media_kit_libs_android_video: ^1.0.3 
-  video_player: ^2.6.1
-  video_player_macos:
-    git:
-      url: https://github.com/ollydixon/flutter_macos_video_player
-      path: packages/video_player/video_player_macos
-  video_player_web_hls: ^1.0.0+3
+  mime: ^2.0.0
+  # media_kit_libs_android_video: ^1.0.3
   fuzzywuzzy: ^1.1.6
   dart_ping: ^9.0.0
-  share_plus: ^7.1.0
+  share_plus: ^11.0.0
   responsive_builder: ^0.7.0
   auto_size_text: ^3.0.0
+  cached_network_image: ^3.2.3
+  video_player: ^2.9.5
+  chewie: ^1.11.3
+  visibility_detector: ^0.4.0+2
+  screen_brightness: ^2.1.3
+
+  video_player_media_kit:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: video_player_media_kit
+
+  # NOTE:
+  # It is not necessary to select all.
+  # Select based on your usage:
+  media_kit_libs_android_video:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: libs/android/media_kit_libs_android_video
+  media_kit_libs_ios_video:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: libs/ios/media_kit_libs_ios_video
+  media_kit_libs_macos_video:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: libs/macos/media_kit_libs_macos_video
+  media_kit_libs_windows_video:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: libs/windows/media_kit_libs_windows_video
+  media_kit_libs_linux:
+    git:
+      url: https://github.com/media-kit/media-kit.git
+      ref: main
+      path: libs/linux/media_kit_libs_linux
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^5.0.0
   mockito: ^5.4.2
   build_runner: ^2.4.5
-  auto_route_generator: ^7.1.1
-  freezed: ^2.3.5
+  auto_route_generator: ^10.1.0
+  freezed: ^3.0.6
   injectable_generator: ^2.1.6
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.2
 flutter:
   uses-material-design: true
-
 
 flutter_launcher_icons:
   android: "ic_launcher"

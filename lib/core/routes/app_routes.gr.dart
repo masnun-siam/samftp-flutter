@@ -16,43 +16,6 @@ import 'package:samftp/features/home/presentation/pages/home_page.dart' as _i2;
 import 'package:samftp/features/player/presentation/pages/player_page.dart'
     as _i3;
 
-abstract class $AppRouter extends _i4.RootStackRouter {
-  $AppRouter({super.navigatorKey});
-
-  @override
-  final Map<String, _i4.PageFactory> pagesMap = {
-    ContentRoute.name: (routeData) {
-      final args = routeData.argsAs<ContentRouteArgs>();
-      return _i4.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: _i1.ContentPage(
-          key: args.key,
-          title: args.title,
-          url: args.url,
-          base: args.base,
-        ),
-      );
-    },
-    HomeRoute.name: (routeData) {
-      return _i4.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const _i2.HomePage(),
-      );
-    },
-    VideoPlayerRoute.name: (routeData) {
-      final args = routeData.argsAs<VideoPlayerRouteArgs>();
-      return _i4.AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: _i3.VideoPlayerPage(
-          key: args.key,
-          url: args.url,
-          title: args.title,
-        ),
-      );
-    },
-  };
-}
-
 /// generated route for
 /// [_i1.ContentPage]
 class ContentRoute extends _i4.PageRouteInfo<ContentRouteArgs> {
@@ -75,8 +38,18 @@ class ContentRoute extends _i4.PageRouteInfo<ContentRouteArgs> {
 
   static const String name = 'ContentRoute';
 
-  static const _i4.PageInfo<ContentRouteArgs> page =
-      _i4.PageInfo<ContentRouteArgs>(name);
+  static _i4.PageInfo page = _i4.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ContentRouteArgs>();
+      return _i1.ContentPage(
+        key: args.key,
+        title: args.title,
+        url: args.url,
+        base: args.base,
+      );
+    },
+  );
 }
 
 class ContentRouteArgs {
@@ -112,7 +85,12 @@ class HomeRoute extends _i4.PageRouteInfo<void> {
 
   static const String name = 'HomeRoute';
 
-  static const _i4.PageInfo<void> page = _i4.PageInfo<void>(name);
+  static _i4.PageInfo page = _i4.PageInfo(
+    name,
+    builder: (data) {
+      return const _i2.HomePage();
+    },
+  );
 }
 
 /// generated route for
@@ -135,8 +113,17 @@ class VideoPlayerRoute extends _i4.PageRouteInfo<VideoPlayerRouteArgs> {
 
   static const String name = 'VideoPlayerRoute';
 
-  static const _i4.PageInfo<VideoPlayerRouteArgs> page =
-      _i4.PageInfo<VideoPlayerRouteArgs>(name);
+  static _i4.PageInfo page = _i4.PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<VideoPlayerRouteArgs>();
+      return _i3.VideoPlayerPage(
+        key: args.key,
+        url: args.url,
+        title: args.title,
+      );
+    },
+  );
 }
 
 class VideoPlayerRouteArgs {

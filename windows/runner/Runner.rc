@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.msiamn" "\0"
-            VALUE "FileDescription", "samftp" "\0"
+            VALUE "FileDescription", "SamFTP" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "samftp" "\0"
+            VALUE "InternalName", "SamFTP" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2023 com.msiamn. All rights reserved." "\0"
             VALUE "OriginalFilename", "samftp.exe" "\0"
-            VALUE "ProductName", "samftp" "\0"
+            VALUE "ProductName", "SamFTP" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
