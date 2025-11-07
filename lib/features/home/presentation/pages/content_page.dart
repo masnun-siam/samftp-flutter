@@ -23,58 +23,133 @@ class ContentPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return BlocBuilder<ContentCubit, ContentState>(
       bloc: getIt<ContentCubit>()..load(url),
       builder: (context, state) {
         return Scaffold(
-          extendBodyBehindAppBar: false,
+          extendBodyBehindAppBar: true,
           appBar: AppBar(
-            backgroundColor: Colors.white.withValues(alpha: .5),
+            backgroundColor: (isDark
+                ? const Color(0xFF1F2937)
+                : Colors.white).withOpacity(0.7),
             elevation: 0,
-            title: Text(Uri.decodeFull(url.split('/').last)),
+            title: Text(
+              Uri.decodeFull(url.split('/').last),
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+                letterSpacing: -0.5,
+                color: isDark ? Colors.white : const Color(0xFF1F2937),
+              ),
+            ),
             leading: Navigator.canPop(context)
-                ? ClipOval(
+                ? Container(
+                    margin: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: (isDark
+                          ? Colors.white.withOpacity(0.1)
+                          : Colors.black.withOpacity(0.05)),
+                    ),
                     child: IconButton(
                       style: TextButton.styleFrom(
-                        iconColor: Colors.black,
-                        padding: const EdgeInsets.all(16),
-                        elevation: 0,
+                        iconColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                        padding: const EdgeInsets.all(8),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      icon: const Icon(Icons.arrow_back),
+                      icon: const Icon(Icons.arrow_back_rounded, size: 20),
                     ),
                   )
                 : null,
             automaticallyImplyLeading: false,
-            titleSpacing: 0,
             actions: [
               if (state is ContentLoaded)
-                IconButton(
-                  style: TextButton.styleFrom(
-                    iconColor: Colors.black,
-                    padding: const EdgeInsets.all(16),
+                Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: (isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.05)),
                   ),
-                  onPressed: () {
-                    _search(context, state);
-                  },
-                  icon: const Icon(Icons.search),
+                  child: IconButton(
+                    style: TextButton.styleFrom(
+                      iconColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                      padding: const EdgeInsets.all(8),
+                    ),
+                    onPressed: () {
+                      _search(context, state);
+                    },
+                    icon: const Icon(Icons.search_rounded, size: 20),
+                  ),
                 ),
             ],
           ),
           body: switch (state) {
-            ContentInitial() => Container(),
-            ContentLoading() => const Center(
-                child: CircularProgressIndicator(),
+            ContentInitial() => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0F172A),
+                            const Color(0xFF1E293B),
+                          ]
+                        : [
+                            const Color(0xFFF5F5F7),
+                            const Color(0xFFEDE9FE),
+                          ],
+                  ),
+                ),
               ),
-            ContentError() => Center(
-                child: Text(state.toString()),
+            ContentLoading() => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0F172A),
+                            const Color(0xFF1E293B),
+                          ]
+                        : [
+                            const Color(0xFFF5F5F7),
+                            const Color(0xFFEDE9FE),
+                          ],
+                  ),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              ),
+            ContentError() => Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isDark
+                        ? [
+                            const Color(0xFF0F172A),
+                            const Color(0xFF1E293B),
+                          ]
+                        : [
+                            const Color(0xFFF5F5F7),
+                            const Color(0xFFEDE9FE),
+                          ],
+                  ),
+                ),
+                child: Center(
+                  child: Text(state.toString()),
+                ),
               ),
             ContentLoaded() => Container(
                 height: MediaQuery.of(context).size.height,
                 width: MediaQuery.of(context).size.width,
-                padding: const EdgeInsets.only(top: kToolbarHeight),
                 decoration: state.models.any((element) =>
                         element.route.endsWith('.jpg') ||
                         element.route.endsWith('.png'))
@@ -91,19 +166,43 @@ class ContentPage extends StatelessWidget {
                           ),
                         ),
                       )
-                    : null,
+                    : BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: isDark
+                              ? [
+                                  const Color(0xFF0F172A),
+                                  const Color(0xFF1E293B),
+                                ]
+                              : [
+                                  const Color(0xFFF5F5F7),
+                                  const Color(0xFFEDE9FE),
+                                ],
+                        ),
+                      ),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    itemBuilder: (context, index) {
-                      return ListItem(
-                        model: state.models[index],
-                        base: base,
-                      );
-                    },
-                    separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemCount: state.models.length,
+                  filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+                  child: Container(
+                    color: (isDark
+                        ? const Color(0xFF0F172A)
+                        : Colors.white).withOpacity(0.3),
+                    child: ListView.separated(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                        bottom: 20,
+                      ),
+                      itemBuilder: (context, index) {
+                        return ListItem(
+                          model: state.models[index],
+                          base: base,
+                        );
+                      },
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemCount: state.models.length,
+                    ),
                   ),
                 ),
               ),
