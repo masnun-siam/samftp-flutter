@@ -103,41 +103,103 @@ class _AppButtonState extends State<AppButton>
     final cleanUrl = widget.url.replaceAll('http://', '').replaceAll('/', '');
 
     return StreamBuilder<PingData>(
-        stream: switch (kIsWeb) {
-          false => Ping(cleanUrl).stream,
-          _ => Stream.value(
-              const PingData(
-                response: PingResponse(time: Duration.zero),
-              ),
+      stream: switch (kIsWeb) {
+        false => Ping(cleanUrl).stream,
+        _ => Stream.value(
+            const PingData(
+              response: PingResponse(time: Duration.zero),
             ),
-        },
-        builder: (context, snapshot) {
-          final isSuccess = snapshot.data?.response?.time != null;
-          return ResponsiveBuilder(builder: (context, sizingInformation) {
-            return InkWell(
-              onTap: onPressed,
-              child: Card(
-                color: isSuccess ? Colors.green.shade300 : Colors.red.shade300,
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Center(
-                    child: Text(
-                      title.split(' ').join('\n'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: switch (sizingInformation.deviceScreenType) {
-                          DeviceScreenType.desktop => 20,
-                          DeviceScreenType.tablet => 16,
-                          _ => 12,
-                        },
-                      )
+          ),
+      },
+      builder: (context, snapshot) {
+        final isSuccess = snapshot.data?.response?.time != null;
+        final gradientColors = _getGradientColors(widget.title, isSuccess, isDark);
+
+        return MouseRegion(
+          onEnter: (_) {
+            setState(() => _isHovering = true);
+            _animationController.forward();
+          },
+          onExit: (_) {
+            setState(() => _isHovering = false);
+            _animationController.reverse();
+          },
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: gradientColors,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: gradientColors.first.withOpacity(_isHovering ? 0.4 : 0.2),
+                    blurRadius: _isHovering ? 20 : 12,
+                    offset: Offset(0, _isHovering ? 8 : 4),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: widget.onPressed,
+                      borderRadius: BorderRadius.circular(24),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(isDark ? 0.2 : 0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        padding: const EdgeInsets.all(24),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (!isSuccess)
+                                Icon(
+                                  Icons.cloud_off_rounded,
+                                  color: Colors.white.withOpacity(0.9),
+                                  size: 32,
+                                ),
+                              if (!isSuccess) const SizedBox(height: 12),
+                              Text(
+                                widget.title,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.5,
+                                  height: 1.3,
+                                  shadows: [
+                                    Shadow(
+                                      color: Colors.black.withOpacity(0.3),
+                                      offset: const Offset(0, 2),
+                                      blurRadius: 4,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
