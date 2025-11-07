@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:responsive_builder/responsive_builder.dart';
 import 'package:samftp/core/helper/uri_helper.dart';
 import 'package:samftp/core/routes/app_routes.gr.dart';
 import 'package:samftp/features/home/presentation/widgets/app_button.dart';
@@ -62,12 +61,11 @@ class HomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    return ResponsiveBuilder(builder: (context, sizingInformation) {
-      final gridSize = switch (sizingInformation.deviceScreenType) {
-        DeviceScreenType.desktop => 250,
-        DeviceScreenType.tablet => 200,
-        _ => 150,
-      };
+    return LayoutBuilder(builder: (context, constraints) {
+      final screenWidth = size.width;
+      final gridSize = screenWidth > 1200 ? 250
+          : screenWidth > 600 ? 200
+          : 150;
       return GridView(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: max(size.width ~/ gridSize, 2),

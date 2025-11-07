@@ -22,11 +22,11 @@ class ListItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 22),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.white.withOpacity(.6),
+        color: Colors.white.withValues(alpha: .6),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        tileColor: Colors.white.withOpacity(.4),
+        tileColor: Colors.white.withValues(alpha: .4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),

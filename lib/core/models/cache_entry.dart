@@ -38,10 +38,10 @@ class CacheEntry {
       timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int),
       items: (json['items'] as List)
           .map((item) => ClickableModel(
-                name: item['name'] as String,
-                url: item['url'] as String,
-                isFolder: item['isFolder'] as bool,
-                mimeType: item['mimeType'] as String?,
+                title: item['name'] as String,
+                route: item['url'] as String,
+                isFile: !(item['isFolder'] as bool),
+                subtitle: item['mimeType'] as String? ?? '',
               ))
           .toList(),
     );

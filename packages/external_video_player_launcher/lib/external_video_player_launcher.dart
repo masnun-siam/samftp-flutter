@@ -1,5 +1,3 @@
-library external_video_player_launcher;
-
 export 'package:external_video_player_launcher/src/mime.dart';
 import 'dart:io';
 

@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -27,12 +28,7 @@ class ContentRoute extends _i4.PageRouteInfo<ContentRouteArgs> {
     List<_i4.PageRouteInfo>? children,
   }) : super(
           ContentRoute.name,
-          args: ContentRouteArgs(
-            key: key,
-            title: title,
-            url: url,
-            base: base,
-          ),
+          args: ContentRouteArgs(key: key, title: title, url: url, base: base),
           initialChildren: children,
         );
 
@@ -72,16 +68,27 @@ class ContentRouteArgs {
   String toString() {
     return 'ContentRouteArgs{key: $key, title: $title, url: $url, base: $base}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ContentRouteArgs) return false;
+    return key == other.key &&
+        title == other.title &&
+        url == other.url &&
+        base == other.base;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ title.hashCode ^ url.hashCode ^ base.hashCode;
 }
 
 /// generated route for
 /// [_i2.HomePage]
 class HomeRoute extends _i4.PageRouteInfo<void> {
   const HomeRoute({List<_i4.PageRouteInfo>? children})
-      : super(
-          HomeRoute.name,
-          initialChildren: children,
-        );
+      : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
@@ -103,11 +110,7 @@ class VideoPlayerRoute extends _i4.PageRouteInfo<VideoPlayerRouteArgs> {
     List<_i4.PageRouteInfo>? children,
   }) : super(
           VideoPlayerRoute.name,
-          args: VideoPlayerRouteArgs(
-            key: key,
-            url: url,
-            title: title,
-          ),
+          args: VideoPlayerRouteArgs(key: key, url: url, title: title),
           initialChildren: children,
         );
 
@@ -143,4 +146,14 @@ class VideoPlayerRouteArgs {
   String toString() {
     return 'VideoPlayerRouteArgs{key: $key, url: $url, title: $title}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! VideoPlayerRouteArgs) return false;
+    return key == other.key && url == other.url && title == other.title;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ url.hashCode ^ title.hashCode;
 }

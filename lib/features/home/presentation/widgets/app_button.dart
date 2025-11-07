@@ -2,7 +2,6 @@
 import 'package:dart_ping/dart_ping.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:responsive_builder/responsive_builder.dart';
 
 class AppButton extends StatelessWidget {
   const AppButton({
@@ -30,7 +29,12 @@ class AppButton extends StatelessWidget {
         },
         builder: (context, snapshot) {
           final isSuccess = snapshot.data?.response?.time != null;
-          return ResponsiveBuilder(builder: (context, sizingInformation) {
+          return LayoutBuilder(builder: (context, constraints) {
+            final screenWidth = MediaQuery.of(context).size.width;
+            final fontSize = screenWidth > 1200 ? 20.0
+                : screenWidth > 600 ? 16.0
+                : 12.0;
+
             return InkWell(
               onTap: onPressed,
               child: Card(
@@ -42,13 +46,7 @@ class AppButton extends StatelessWidget {
                     child: Text(
                       title.split(' ').join('\n'),
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: switch (sizingInformation.deviceScreenType) {
-                          DeviceScreenType.desktop => 20,
-                          DeviceScreenType.tablet => 16,
-                          _ => 12,
-                        },
-                      )
+                      style: TextStyle(fontSize: fontSize)
                     ),
                   ),
                 ),

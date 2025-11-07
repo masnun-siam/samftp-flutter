@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:html_character_entities/html_character_entities.dart';
 import 'package:injectable/injectable.dart';
 import 'package:samftp/core/error/failure.dart';

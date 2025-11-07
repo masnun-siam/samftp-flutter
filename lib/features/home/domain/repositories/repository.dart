@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:samftp/core/core.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 

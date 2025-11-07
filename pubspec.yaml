@@ -7,56 +7,52 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_icons: ^1.0.2
-  dartz: ^0.10.1
+
+  # State Management & Architecture
+  fpdart: ^1.1.0  # Replaced dartz (abandoned) with actively maintained alternative
   equatable: ^2.0.5
   flutter_bloc: ^9.1.1
   get_it: ^8.0.3
-  internet_connection_checker: ^3.0.1
-  # http: ^1.0.0
-  shared_preferences: ^2.1.2
-  html: ^0.15.4
-  auto_route: ^10.1.0+1
-  freezed_annotation: ^3.0.0
-  injectable: ^2.1.2
-  dio: ^5.2.1
-  # share_plus: ^6.3.4
-  html_character_entities: ^1.0.0+1
-  external_video_player_launcher:
-    path: packages/external_video_player_launcher
-  easy_image_viewer: ^1.2.1
-  mime: ^2.0.0
-  # media_kit_libs_android_video: ^1.0.3
-  fuzzywuzzy: ^1.1.6
-  dart_ping: ^9.0.0
-  share_plus: ^11.0.0
-  responsive_builder: ^0.7.0
-  auto_size_text: ^3.0.0
-  cached_network_image: ^3.2.3
-  video_player: ^2.9.5
-  chewie: ^1.11.3
-  visibility_detector: ^0.4.0+2
-  screen_brightness: ^2.1.3
 
-  # Storage & File System
+  # Network & Connectivity
+  internet_connection_checker: ^3.0.1
+  dio: ^5.7.0
+  dart_ping: ^9.0.0
+
+  # Storage & Preferences
+  shared_preferences: ^2.1.2
   flutter_secure_storage: ^9.0.0
   path_provider: ^2.1.1
 
-  # Audio Player
-  just_audio: ^0.9.36
-  audio_video_progress_bar: ^1.0.1
+  # HTML & Web
+  html: ^0.15.4
+  html_character_entities: ^1.0.0+1
 
-  # Image Viewer (already has easy_image_viewer)
-  photo_view: ^0.14.0
+  # Routing & Navigation
+  auto_route: ^10.2.0
+  freezed_annotation: ^3.0.0
+  injectable: ^2.1.2
 
-  # File Operations
-  file_picker: ^6.1.1
-  permission_handler: ^11.0.1
-  open_filex: ^4.3.4
+  # Media & Video
+  external_video_player_launcher:
+    path: packages/external_video_player_launcher
+  video_player: ^2.9.5
+  chewie: ^1.11.3
+
+  # Images
+  easy_image_viewer: ^1.2.1
+  mime: ^2.0.0
+
+  # Search & Text
+  string_similarity: ^2.0.0  # Replaced fuzzywuzzy (outdated) with actively maintained alternative
+
+  # Sharing & UI
+  share_plus: ^11.0.0
+  responsive_framework: ^1.5.0  # Replaced responsive_builder (outdated) with better alternative
+  auto_size_text: ^3.0.0
 
   # Utilities
   intl: ^0.18.1
-  url_launcher: ^6.2.1
   logger: ^2.0.2
   crypto: ^3.0.3
 
@@ -97,13 +93,13 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
   mockito: ^5.4.2
-  build_runner: ^2.4.5
-  auto_route_generator: ^10.1.0
+  build_runner: ^2.6.0
+  auto_route_generator: ^10.2.0
   freezed: ^3.0.6
-  injectable_generator: ^2.1.6
-  flutter_launcher_icons: ^0.14.2
+  injectable_generator: ^2.7.0
+  flutter_launcher_icons: ^0.14.4
 flutter:
   uses-material-design: true
 

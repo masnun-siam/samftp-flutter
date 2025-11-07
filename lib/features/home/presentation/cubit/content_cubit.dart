@@ -18,7 +18,7 @@ class ContentCubit extends Cubit<ContentState> {
     result.fold(
       (failure) => emit(ContentError(message: failure.toString())),
       (models) => emit(
-          ContentLoaded(models: models, baseUrl: baseUrl.getOrElse(() => ''))),
+          ContentLoaded(models: models, baseUrl: baseUrl.getOrElse((l) => ''))),
     );
   }
 }

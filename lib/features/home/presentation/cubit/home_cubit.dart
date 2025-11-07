@@ -1,4 +1,4 @@
-import 'package:bloc/bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:injectable/injectable.dart';
 import 'package:samftp/features/home/domain/usecases/get_document.dart';
@@ -26,15 +26,15 @@ class HomeCubit extends Cubit<HomeState> {
     final kdramas = await getDocument(SamFtpUrls.kdrama.start);
     final anime = await getDocument(SamFtpUrls.anime.start);
     emit(HomeLoaded(
-      movies: movies.getOrElse(() => []),
-      series: series.getOrElse(() => []),
-      kdramas: kdramas.getOrElse(() => []),
-      anime: anime.getOrElse(() => []),
-      hindi: hindi.getOrElse(() => []),
-      animation: animation.getOrElse(() => []),
-      bangla: bangla.getOrElse(() => []),
-      south: south.getOrElse(() => []),
-      foreign: foreign.getOrElse(() => []),
+      movies: movies.getOrElse((l) => []),
+      series: series.getOrElse((l) => []),
+      kdramas: kdramas.getOrElse((l) => []),
+      anime: anime.getOrElse((l) => []),
+      hindi: hindi.getOrElse((l) => []),
+      animation: animation.getOrElse((l) => []),
+      bangla: bangla.getOrElse((l) => []),
+      south: south.getOrElse((l) => []),
+      foreign: foreign.getOrElse((l) => []),
 
     ));
   }

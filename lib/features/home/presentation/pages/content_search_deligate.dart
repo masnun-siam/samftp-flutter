@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fuzzywuzzy/fuzzywuzzy.dart';
+import 'package:string_similarity/string_similarity.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 
 class ContentSearchDelegate extends SearchDelegate<ClickableModel?> {
@@ -45,11 +45,17 @@ class ContentSearchDelegate extends SearchDelegate<ClickableModel?> {
     //     .join('')
     //     .toLowerCase();
 
-    final results = extractAllSorted<ClickableModel>(
-      query: query,
-      choices: list,
-      getter: (obj) => obj.title.split('(').first,
-    ).map((e) => e.choice).toList();
+    // Use string_similarity to find best matches
+    final scoredResults = list.map((item) {
+      final itemTitle = item.title.split('(').first;
+      final similarity = query.similarityTo(itemTitle);
+      return MapEntry(item, similarity);
+    }).toList();
+
+    // Sort by similarity score (highest first)
+    scoredResults.sort((a, b) => b.value.compareTo(a.value));
+
+    final results = scoredResults.map((e) => e.key).toList();
 
     // final results = list.where((element) {
     //   final cleanTitle = element.title
