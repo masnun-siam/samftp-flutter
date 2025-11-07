@@ -14,24 +14,40 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('SamFtp'),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text(
+          'SamFtp',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 28,
+            letterSpacing: -1,
+          ),
         ),
-        body: Builder(
-          builder: (context) {
-            return const HomeBody(
-                // englishMovies: state.movies,
-                // series: state.series,
-                // kdramas: state.kdramas,
-                // anime: state.anime,
-                // animationMovies: state.animation,
-                // hindiMovies: state.hindi,
-                // southMovies: state.south,
-                // banglaMovies: state.bangla,
-                // foreignMovies: state.foreign,
-                );
-          },
-        ));
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: Theme.of(context).brightness == Brightness.dark
+                ? [
+                    const Color(0xFF0F172A),
+                    const Color(0xFF1E293B),
+                    const Color(0xFF312E81),
+                  ]
+                : [
+                    const Color(0xFFF5F5F7),
+                    const Color(0xFFEDE9FE),
+                    const Color(0xFFDDD6FE),
+                  ],
+          ),
+        ),
+        child: const HomeBody(),
+      ),
+    );
   }
 }
 
@@ -64,17 +80,23 @@ class HomeBody extends StatelessWidget {
     final size = MediaQuery.sizeOf(context);
     return ResponsiveBuilder(builder: (context, sizingInformation) {
       final gridSize = switch (sizingInformation.deviceScreenType) {
-        DeviceScreenType.desktop => 250,
-        DeviceScreenType.tablet => 200,
-        _ => 150,
+        DeviceScreenType.desktop => 280,
+        DeviceScreenType.tablet => 220,
+        _ => 160,
       };
       return GridView(
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: max(size.width ~/ gridSize, 2),
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.0,
         ),
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: MediaQuery.of(context).padding.top + kToolbarHeight + 20,
+          bottom: 20,
+        ),
         children: [
           AppButton(
             title: 'English Movies',
