@@ -19,6 +19,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   late final ChewieController chewieController;
 
   bool isInitialized = false;
+  double aspectRatio = 16 / 9;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     );
 
     setState(() {
+      aspectRatio = controller.value.aspectRatio;
       isInitialized = true;
     });
   }
@@ -101,7 +103,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         child: Center(
           child: isInitialized
               ? AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
+                  aspectRatio: aspectRatio,
                   child: Chewie(controller: chewieController),
                 )
               : Column(
