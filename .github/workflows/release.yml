@@ -1,0 +1,142 @@
+name: Build and Release APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for version tagging
+
+      - name: Validate required secrets
+        run: |
+          MISSING_SECRETS=""
+
+          if [ -z "${{ secrets.KEYSTORE_FILE }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEYSTORE_FILE"
+          fi
+
+          if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEYSTORE_PASSWORD"
+          fi
+
+          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEY_ALIAS"
+          fi
+
+          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEY_PASSWORD"
+          fi
+
+          if [ -n "$MISSING_SECRETS" ]; then
+            echo "::error::Missing required secrets! Please add the following secrets to your repository:"
+            echo -e "$MISSING_SECRETS"
+            echo ""
+            echo "See .github/RELEASE_WORKFLOW_SETUP.md for instructions on how to set up secrets."
+            exit 1
+          fi
+
+          echo "✓ All required secrets are present"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Get Flutter dependencies
+        run: flutter pub get
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 --decode > android/app/key.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=key.jks" >> android/key.properties
+
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Get version from pubspec.yaml
+        id: version
+        run: |
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="v${VERSION}"
+          COUNTER=1
+
+          # Check if tag exists and increment if necessary
+          while git rev-parse "$TAG" >/dev/null 2>&1; do
+            TAG="v${VERSION}-build${COUNTER}"
+            COUNTER=$((COUNTER + 1))
+          done
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Release tag: $TAG"
+
+      - name: Get commit messages since last tag
+        id: changelog
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
+
+          # Save changelog to a file to handle multiline
+          echo "$CHANGELOG" > changelog.txt
+          echo "Generated changelog"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          release_name: Release ${{ steps.tag.outputs.tag }}
+          body_path: changelog.txt
+          draft: false
+          prerelease: false
+
+      - name: Upload APK to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-release.apk
+          asset_name: samftp-${{ steps.tag.outputs.tag }}.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Clean up keystore
+        if: always()
+        run: |
+          rm -f android/app/key.jks
+          rm -f android/key.properties
