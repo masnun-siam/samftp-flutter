@@ -87,7 +87,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     // Dispose old controllers
     controller.removeListener(_videoListener);
     await controller.dispose();
-    await chewieController.dispose();
+    chewieController.dispose();
 
     // Initialize new video
     _initializeVideoPlayer(newUrl);
