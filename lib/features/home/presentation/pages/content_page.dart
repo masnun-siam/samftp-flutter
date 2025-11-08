@@ -8,6 +8,7 @@ import 'package:mime/mime.dart';
 import 'package:samftp/di/di.dart';
 import 'package:samftp/features/home/presentation/cubit/content_cubit.dart';
 import 'package:samftp/features/home/presentation/widgets/list_item.dart';
+import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 import 'package:samftp/features/playlists/domain/entities/playlist_item.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:samftp/features/playlists/data/services/m3u_generator.dart';
@@ -522,7 +523,7 @@ class ContentPage extends StatelessWidget {
 
 /// Dialog for download progress
 class _DownloadProgressDialog extends StatefulWidget {
-  final List files;
+  final List<dynamic> files;
   final String base;
 
   const _DownloadProgressDialog({
@@ -551,7 +552,7 @@ class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
 
     try {
       await downloadManager.downloadFiles(
-        files: widget.files,
+        files: widget.files.cast<ClickableModel>(),
         onProgress: (index, progress) {
           if (mounted) {
             setState(() {
