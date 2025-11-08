@@ -15,6 +15,36 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history for version tagging
 
+      - name: Validate required secrets
+        run: |
+          MISSING_SECRETS=""
+
+          if [ -z "${{ secrets.KEYSTORE_FILE }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEYSTORE_FILE"
+          fi
+
+          if [ -z "${{ secrets.KEYSTORE_PASSWORD }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEYSTORE_PASSWORD"
+          fi
+
+          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEY_ALIAS"
+          fi
+
+          if [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+            MISSING_SECRETS="${MISSING_SECRETS}\n- KEY_PASSWORD"
+          fi
+
+          if [ -n "$MISSING_SECRETS" ]; then
+            echo "::error::Missing required secrets! Please add the following secrets to your repository:"
+            echo -e "$MISSING_SECRETS"
+            echo ""
+            echo "See .github/RELEASE_WORKFLOW_SETUP.md for instructions on how to set up secrets."
+            exit 1
+          fi
+
+          echo "✓ All required secrets are present"
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
