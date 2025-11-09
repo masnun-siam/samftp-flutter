@@ -8,6 +8,8 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Required to create releases and upload assets
 
     steps:
       - name: Checkout repository
@@ -113,27 +115,22 @@ jobs:
           echo "$CHANGELOG" > changelog.txt
           echo "Generated changelog"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Rename APK
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk \
+             build/app/outputs/flutter-apk/samftp-${{ steps.tag.outputs.tag }}.apk
+
+      - name: Create Release and Upload APK
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: Release ${{ steps.tag.outputs.tag }}
+          name: Release ${{ steps.tag.outputs.tag }}
           body_path: changelog.txt
           draft: false
           prerelease: false
-
-      - name: Upload APK to Release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: samftp-${{ steps.tag.outputs.tag }}.apk
-          asset_content_type: application/vnd.android.package-archive
+          files: |
+            build/app/outputs/flutter-apk/samftp-${{ steps.tag.outputs.tag }}.apk
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Clean up keystore
         if: always()
