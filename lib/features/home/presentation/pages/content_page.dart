@@ -114,21 +114,39 @@ class ContentPage extends StatelessWidget {
                               ],
                             ),
                           ),
-                          PopupMenuItem(
-                            value: 'share_playlist',
-                            onTap: () => _sharePlaylist(context, state),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.share_rounded,
-                                  size: 20,
-                                  color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
-                                ),
-                                const SizedBox(width: 12),
-                                const Text('Share Playlist (M3U)'),
-                              ],
+                          // Show "Share Playlist" on mobile, "Open with MPV" on desktop
+                          if (Platform.isAndroid || Platform.isIOS)
+                            PopupMenuItem(
+                              value: 'share_playlist',
+                              onTap: () => _sharePlaylist(context, state),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.share_rounded,
+                                    size: 20,
+                                    color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Share Playlist (M3U)'),
+                                ],
+                              ),
+                            )
+                          else
+                            PopupMenuItem(
+                              value: 'open_mpv',
+                              onTap: () => _openWithMpv(context, state),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.play_arrow_rounded,
+                                    size: 20,
+                                    color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  const Text('Open Playlist with MPV'),
+                                ],
+                              ),
                             ),
-                          ),
                           PopupMenuItem(
                             value: 'download_all',
                             onTap: () => _downloadAllMedia(context, state),
@@ -453,6 +471,55 @@ class ContentPage extends StatelessWidget {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error sharing playlist: $e')),
+      );
+    }
+  }
+
+  /// Open playlist with MPV player (desktop only)
+  Future<void> _openWithMpv(BuildContext context, ContentLoaded state) async {
+    final mediaFiles = _getMediaFiles(state.models);
+
+    if (mediaFiles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No media files found in this folder')),
+      );
+      return;
+    }
+
+    try {
+      // Convert to playlist items
+      final playlistItems = mediaFiles.map(_toPlaylistItem).toList();
+
+      // Generate M3U file
+      final generator = M3uGenerator();
+      final playlistName = Uri.decodeFull(url.split('/').last);
+      final m3uPath = await generator.generateM3uFile(playlistName, playlistItems);
+
+      // Launch MPV with the playlist
+      final result = await Process.start('mpv', [m3uPath]);
+
+      // Show success message
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Opening playlist with MPV (${playlistItems.length} items)'),
+        ),
+      );
+
+      // Listen to process output for debugging (optional)
+      result.stdout.listen((data) {
+        // MPV output - can be logged if needed
+      });
+
+      result.stderr.listen((data) {
+        // MPV errors - can be logged if needed
+      });
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error opening MPV: $e\nMake sure MPV is installed and in PATH'),
+        ),
       );
     }
   }
