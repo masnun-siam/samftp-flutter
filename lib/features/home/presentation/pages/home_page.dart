@@ -25,6 +25,15 @@ class HomePage extends StatelessWidget {
         ),
         elevation: 0,
         backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_rounded),
+            tooltip: 'Bookmarks',
+            onPressed: () {
+              context.router.push(const BookmarksRoute());
+            },
+          ),
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

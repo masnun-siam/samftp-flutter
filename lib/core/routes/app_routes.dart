@@ -11,5 +11,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: HomeRoute.page, initial: true),
         AutoRoute(page: ContentRoute.page),
         AutoRoute(page: VideoPlayerRoute.page),
+        AutoRoute(page: BookmarksRoute.page),
       ];
 }
