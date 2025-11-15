@@ -120,6 +120,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     });
 
     if (isDesktop) {
+      // Stop the current player before switching
+      await player.stop();
       // Switch video on desktop
       await player.open(Media(newUrl));
     } else {
