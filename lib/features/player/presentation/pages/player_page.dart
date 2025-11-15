@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_character_entities/html_character_entities.dart';
-import 'package:video_player/video_player.dart';
+import 'package:video_player/video_player.dart' as vp;
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_state.dart';
 
@@ -25,11 +27,23 @@ class VideoPlayerPage extends StatefulWidget {
 }
 
 class _VideoPlayerPageState extends State<VideoPlayerPage> {
-  late VideoPlayerController controller;
+  // For mobile (Chewie)
+  late vp.VideoPlayerController vpController;
   late ChewieController chewieController;
+
+  // For desktop (media_kit)
+  late Player player;
+  late VideoController videoController;
 
   bool isInitialized = false;
   String? currentUrl;
+
+  // Check if running on desktop
+  bool get isDesktop => !kIsWeb && (
+    defaultTargetPlatform == TargetPlatform.macOS ||
+    defaultTargetPlatform == TargetPlatform.windows ||
+    defaultTargetPlatform == TargetPlatform.linux
+  );
 
   @override
   void initState() {
@@ -51,25 +65,37 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   void _initializeVideoPlayer(String url) async {
-    controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    await controller.initialize();
+    if (isDesktop) {
+      // Initialize media_kit for desktop
+      player = Player();
+      videoController = VideoController(player);
 
-    // Listen for video completion
-    controller.addListener(_videoListener);
+      await player.open(Media(url));
 
-    chewieController = ChewieController(
-      videoPlayerController: controller,
-      autoPlay: true,
-      looping: false,
-      allowedScreenSleep: false,
-      allowFullScreen: true,
-      allowMuting: true,
-      showControls: true,
-      // Enable desktop controls for better mouse interaction on macOS/Windows/Linux
-      allowPlaybackSpeedChanging: !kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS ||
-          defaultTargetPlatform == TargetPlatform.windows ||
-          defaultTargetPlatform == TargetPlatform.linux),
-    );
+      // Listen for video completion on desktop
+      player.stream.completed.listen((completed) {
+        if (completed && widget.playlistCubit != null) {
+          widget.playlistCubit!.onItemFinished();
+        }
+      });
+    } else {
+      // Initialize Chewie for mobile
+      vpController = vp.VideoPlayerController.networkUrl(Uri.parse(url));
+      await vpController.initialize();
+
+      // Listen for video completion
+      vpController.addListener(_videoListener);
+
+      chewieController = ChewieController(
+        videoPlayerController: vpController,
+        autoPlay: true,
+        looping: false,
+        allowedScreenSleep: false,
+        allowFullScreen: true,
+        allowMuting: true,
+        showControls: true,
+      );
+    }
 
     setState(() {
       isInitialized = true;
@@ -78,9 +104,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   void _videoListener() {
-    // Check if video finished playing
-    if (controller.value.position >= controller.value.duration &&
-        controller.value.duration.inSeconds > 0) {
+    // Check if video finished playing (mobile only)
+    if (vpController.value.position >= vpController.value.duration &&
+        vpController.value.duration.inSeconds > 0) {
       // Auto-advance to next video in playlist mode
       if (widget.playlistCubit != null) {
         widget.playlistCubit!.onItemFinished();
@@ -93,10 +119,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       isInitialized = false;
     });
 
-    // Dispose old controllers
-    controller.removeListener(_videoListener);
-    await controller.dispose();
-    chewieController.dispose();
+    if (isDesktop) {
+      // Switch video on desktop
+      await player.open(Media(newUrl));
+    } else {
+      // Dispose old controllers on mobile
+      vpController.removeListener(_videoListener);
+      await vpController.dispose();
+      chewieController.dispose();
+    }
 
     // Initialize new video
     _initializeVideoPlayer(newUrl);
@@ -104,9 +135,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   void dispose() {
-    controller.removeListener(_videoListener);
-    controller.dispose();
-    chewieController.dispose();
+    if (isDesktop) {
+      player.dispose();
+    } else {
+      vpController.removeListener(_videoListener);
+      vpController.dispose();
+      chewieController.dispose();
+    }
     super.dispose();
   }
 
@@ -277,10 +312,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         ),
         child: Center(
           child: isInitialized
-              ? AspectRatio(
-                  aspectRatio: controller.value.aspectRatio,
-                  child: Chewie(controller: chewieController),
-                )
+              ? isDesktop
+                  ? _buildDesktopPlayer()
+                  : _buildMobilePlayer()
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -308,6 +342,34 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDesktopPlayer() {
+    return MaterialDesktopVideoControlsTheme(
+      normal: MaterialDesktopVideoControlsThemeData(
+        buttonBarButtonSize: 28.0,
+        buttonBarButtonColor: Colors.white,
+        seekBarThumbColor: Theme.of(context).colorScheme.primary,
+        seekBarPositionColor: Theme.of(context).colorScheme.primary,
+        volumeBarThumbColor: Theme.of(context).colorScheme.primary,
+        volumeBarActiveColor: Theme.of(context).colorScheme.primary,
+      ),
+      fullscreen: const MaterialDesktopVideoControlsThemeData(
+        buttonBarButtonSize: 32.0,
+        buttonBarButtonColor: Colors.white,
+      ),
+      child: Video(
+        controller: videoController,
+        controls: MaterialDesktopVideoControls,
+      ),
+    );
+  }
+
+  Widget _buildMobilePlayer() {
+    return AspectRatio(
+      aspectRatio: vpController.value.aspectRatio,
+      child: Chewie(controller: chewieController),
     );
   }
 }
