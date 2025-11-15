@@ -1,5 +1,6 @@
 import 'package:auto_route/annotations.dart';
 import 'package:chewie/chewie.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_character_entities/html_character_entities.dart';
@@ -60,6 +61,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       videoPlayerController: controller,
       autoPlay: true,
       looping: false,
+      allowedScreenSleep: false,
+      allowFullScreen: true,
+      allowMuting: true,
+      showControls: true,
+      // Enable desktop controls for better mouse interaction on macOS/Windows/Linux
+      allowPlaybackSpeedChanging: !kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux),
     );
 
     setState(() {
