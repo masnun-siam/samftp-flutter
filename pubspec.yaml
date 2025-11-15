@@ -38,6 +38,8 @@ dependencies:
     path: packages/external_video_player_launcher
   video_player: ^2.9.5
   chewie: ^1.11.3
+  media_kit: ^1.1.11
+  media_kit_video: ^1.2.5
 
   # Images
   easy_image_viewer: ^1.2.1
