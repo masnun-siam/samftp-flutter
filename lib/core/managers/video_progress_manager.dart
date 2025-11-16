@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Model for video progress information
 class VideoProgress {
@@ -293,6 +295,194 @@ class VideoProgressManager {
   Future<List<String>> _getAllVideos() async {
     return _prefs!.getStringList(_allVideosKey) ?? [];
   }
+
+  /// Export all progress data to a JSON file
+  /// Returns the file path on success, null on failure
+  Future<String?> exportProgress() async {
+    _ensureInitialized();
+
+    try {
+      // Get all tracked videos
+      final allVideos = await _getAllVideos();
+
+      if (allVideos.isEmpty) {
+        return null;
+      }
+
+      // Collect all progress data
+      final List<Map<String, dynamic>> progressList = [];
+
+      for (final url in allVideos) {
+        final progress = await getProgress(url);
+        if (progress != null) {
+          progressList.add(progress.toJson());
+        }
+      }
+
+      // Create export data structure
+      final exportData = {
+        'version': 1,
+        'exportDate': DateTime.now().toIso8601String(),
+        'totalVideos': progressList.length,
+        'progress': progressList,
+      };
+
+      // Save to file
+      final directory = await getApplicationDocumentsDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final filePath = '${directory.path}/video_progress_export_$timestamp.json';
+      final file = File(filePath);
+
+      await file.writeAsString(json.encode(exportData));
+
+      return filePath;
+    } catch (e) {
+      print('Error exporting progress: $e');
+      return null;
+    }
+  }
+
+  /// Import progress data from a JSON file
+  /// Returns the number of items imported, or -1 on failure
+  Future<ImportResult> importProgress(String filePath, {bool mergeMode = true}) async {
+    _ensureInitialized();
+
+    try {
+      final file = File(filePath);
+
+      if (!await file.exists()) {
+        return ImportResult(
+          success: false,
+          itemsImported: 0,
+          itemsSkipped: 0,
+          itemsUpdated: 0,
+          error: 'File not found',
+        );
+      }
+
+      // Read and parse file
+      final contents = await file.readAsString();
+      final importData = json.decode(contents) as Map<String, dynamic>;
+
+      // Validate version
+      if (importData['version'] != 1) {
+        return ImportResult(
+          success: false,
+          itemsImported: 0,
+          itemsSkipped: 0,
+          itemsUpdated: 0,
+          error: 'Unsupported file version',
+        );
+      }
+
+      final progressList = importData['progress'] as List;
+      int imported = 0;
+      int skipped = 0;
+      int updated = 0;
+
+      for (final progressJson in progressList) {
+        final progress = VideoProgress.fromJson(progressJson as Map<String, dynamic>);
+
+        if (mergeMode) {
+          // In merge mode, only import if newer or doesn't exist
+          final existing = await getProgress(progress.videoUrl);
+
+          if (existing == null) {
+            // New entry
+            await saveProgress(
+              videoUrl: progress.videoUrl,
+              position: progress.position,
+              duration: progress.duration,
+              forceCompleted: progress.isCompleted,
+            );
+            imported++;
+          } else if (progress.lastWatched.isAfter(existing.lastWatched)) {
+            // Update if imported data is newer
+            await saveProgress(
+              videoUrl: progress.videoUrl,
+              position: progress.position,
+              duration: progress.duration,
+              forceCompleted: progress.isCompleted,
+            );
+            updated++;
+          } else {
+            // Skip older data
+            skipped++;
+          }
+        } else {
+          // Replace mode - overwrite everything
+          await saveProgress(
+            videoUrl: progress.videoUrl,
+            position: progress.position,
+            duration: progress.duration,
+            forceCompleted: progress.isCompleted,
+          );
+          imported++;
+        }
+      }
+
+      return ImportResult(
+        success: true,
+        itemsImported: imported,
+        itemsSkipped: skipped,
+        itemsUpdated: updated,
+      );
+    } catch (e) {
+      print('Error importing progress: $e');
+      return ImportResult(
+        success: false,
+        itemsImported: 0,
+        itemsSkipped: 0,
+        itemsUpdated: 0,
+        error: e.toString(),
+      );
+    }
+  }
+
+  /// Get export statistics
+  Future<Map<String, dynamic>> getExportStats() async {
+    _ensureInitialized();
+
+    final allVideos = await _getAllVideos();
+    int completed = 0;
+    int inProgress = 0;
+
+    for (final url in allVideos) {
+      final progress = await getProgress(url);
+      if (progress != null) {
+        if (progress.isCompleted) {
+          completed++;
+        } else {
+          inProgress++;
+        }
+      }
+    }
+
+    return {
+      'totalVideos': allVideos.length,
+      'completedVideos': completed,
+      'inProgressVideos': inProgress,
+    };
+  }
+}
+
+/// Result of import operation
+class ImportResult {
+  final bool success;
+  final int itemsImported;
+  final int itemsSkipped;
+  final int itemsUpdated;
+  final String? error;
+
+  ImportResult({
+    required this.success,
+    required this.itemsImported,
+    required this.itemsSkipped,
+    required this.itemsUpdated,
+    this.error,
+  });
+
+  int get totalProcessed => itemsImported + itemsSkipped + itemsUpdated;
 }
 
 /// Model for folder progress statistics
