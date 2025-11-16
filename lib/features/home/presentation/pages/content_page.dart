@@ -15,7 +15,9 @@ import 'package:samftp/features/playlists/data/services/m3u_generator.dart';
 import 'package:samftp/features/player/presentation/pages/player_page.dart';
 import 'package:samftp/core/managers/bookmark_manager.dart';
 import 'package:samftp/core/managers/download_manager.dart';
+import 'package:samftp/core/managers/video_progress_manager.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/routes/app_routes.gr.dart';
 import '../cubit/content_state.dart';
@@ -77,6 +79,76 @@ class ContentPage extends StatelessWidget {
             automaticallyImplyLeading: false,
             actions: [
               if (state is ContentLoaded) ...[
+                // Progress management menu
+                Container(
+                  margin: const EdgeInsets.only(right: 4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: (isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.black.withOpacity(0.05)),
+                  ),
+                  child: PopupMenuButton(
+                    icon: Icon(
+                      Icons.settings_rounded,
+                      color: isDark ? Colors.white : const Color(0xFF1F2937),
+                      size: 20,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    tooltip: 'Progress Management',
+                    itemBuilder: (context) {
+                      return [
+                        PopupMenuItem(
+                          value: 'export_progress',
+                          onTap: () => _exportProgress(context),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.upload_file_rounded,
+                                size: 20,
+                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text('Export Progress'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'import_progress',
+                          onTap: () => _importProgress(context),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.download_rounded,
+                                size: 20,
+                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text('Import Progress'),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'progress_stats',
+                          onTap: () => _showProgressStats(context),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.analytics_rounded,
+                                size: 20,
+                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                              ),
+                              const SizedBox(width: 12),
+                              const Text('Progress Statistics'),
+                            ],
+                          ),
+                        ),
+                      ];
+                    },
+                  ),
+                ),
                 // Playlist actions menu
                 if (_hasMediaFiles(state.models))
                   Container(
@@ -302,21 +374,34 @@ class ContentPage extends StatelessWidget {
                     color: (isDark
                         ? const Color(0xFF0F172A)
                         : Colors.white).withOpacity(0.3),
-                    child: ListView.separated(
-                      padding: EdgeInsets.only(
-                        left: 20,
-                        right: 20,
-                        top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
-                        bottom: 20,
-                      ),
-                      itemBuilder: (context, index) {
-                        return ListItem(
-                          model: state.models[index],
-                          base: base,
-                        );
-                      },
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
-                      itemCount: state.models.length,
+                    child: Column(
+                      children: [
+                        // Folder progress indicator
+                        if (_hasMediaFiles(state.models))
+                          _FolderProgressIndicator(
+                            models: state.models,
+                            base: base,
+                            isDark: isDark,
+                          ),
+                        Expanded(
+                          child: ListView.separated(
+                            padding: EdgeInsets.only(
+                              left: 20,
+                              right: 20,
+                              top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                              bottom: 20,
+                            ),
+                            itemBuilder: (context, index) {
+                              return ListItem(
+                                model: state.models[index],
+                                base: base,
+                              );
+                            },
+                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            itemCount: state.models.length,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -586,6 +671,282 @@ class ContentPage extends StatelessWidget {
       );
     }
   }
+
+  /// Export video progress to a file
+  Future<void> _exportProgress(BuildContext context) async {
+    try {
+      final progressManager = VideoProgressManager();
+      await progressManager.init();
+
+      // Get stats first
+      final stats = await progressManager.getExportStats();
+
+      if (stats['totalVideos'] == 0) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No progress data to export')),
+        );
+        return;
+      }
+
+      // Show export dialog
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Export Progress'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Export your video progress data?'),
+              const SizedBox(height: 16),
+              Text('Total videos: ${stats['totalVideos']}'),
+              Text('Completed: ${stats['completedVideos']}'),
+              Text('In progress: ${stats['inProgressVideos']}'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Export'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      // Export progress
+      final filePath = await progressManager.exportProgress();
+
+      if (filePath == null) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to export progress')),
+        );
+        return;
+      }
+
+      // Share the file
+      await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'Video Progress Export',
+        text: 'Video progress data exported on ${DateTime.now().toString().split('.')[0]}',
+      );
+
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Progress exported successfully')),
+      );
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error exporting progress: $e')),
+      );
+    }
+  }
+
+  /// Import video progress from a file
+  Future<void> _importProgress(BuildContext context) async {
+    try {
+      // Pick file
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+
+      if (result == null || result.files.isEmpty) {
+        return;
+      }
+
+      final filePath = result.files.first.path;
+      if (filePath == null) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid file selected')),
+        );
+        return;
+      }
+
+      // Ask for import mode
+      final mergeMode = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('Import Mode'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('How would you like to import?'),
+              SizedBox(height: 8),
+              Text(
+                'Merge: Keep existing progress, only add new or newer entries',
+                style: TextStyle(fontSize: 12),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'Replace: Overwrite all existing progress',
+                style: TextStyle(fontSize: 12),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(null),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Replace'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Merge'),
+            ),
+          ],
+        ),
+      );
+
+      if (mergeMode == null) return;
+
+      // Import progress
+      final progressManager = VideoProgressManager();
+      await progressManager.init();
+
+      final importResult = await progressManager.importProgress(
+        filePath,
+        mergeMode: mergeMode,
+      );
+
+      if (!importResult.success) {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Import failed: ${importResult.error}')),
+        );
+        return;
+      }
+
+      // Show results
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(width: 8),
+              Text('Import Successful'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('New items: ${importResult.itemsImported}'),
+              Text('Updated items: ${importResult.itemsUpdated}'),
+              Text('Skipped items: ${importResult.itemsSkipped}'),
+              const SizedBox(height: 8),
+              Text(
+                'Total processed: ${importResult.totalProcessed}',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error importing progress: $e')),
+      );
+    }
+  }
+
+  /// Show progress statistics
+  Future<void> _showProgressStats(BuildContext context) async {
+    try {
+      final progressManager = VideoProgressManager();
+      await progressManager.init();
+
+      final stats = await progressManager.getExportStats();
+
+      // ignore: use_build_context_synchronously
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.analytics_rounded, color: Colors.blue),
+              SizedBox(width: 8),
+              Text('Progress Statistics'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _StatRow(
+                icon: Icons.video_library_rounded,
+                label: 'Total tracked videos',
+                value: '${stats['totalVideos']}',
+              ),
+              const SizedBox(height: 8),
+              _StatRow(
+                icon: Icons.check_circle_rounded,
+                label: 'Completed',
+                value: '${stats['completedVideos']}',
+                color: Colors.green,
+              ),
+              const SizedBox(height: 8),
+              _StatRow(
+                icon: Icons.play_circle_rounded,
+                label: 'In progress',
+                value: '${stats['inProgressVideos']}',
+                color: Colors.orange,
+              ),
+              if (stats['totalVideos'] > 0) ...[
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 8),
+                Text(
+                  'Completion rate: ${((stats['completedVideos'] / stats['totalVideos']) * 100).toStringAsFixed(1)}%',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      // ignore: use_build_context_synchronously
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading statistics: $e')),
+      );
+    }
+  }
 }
 
 /// Dialog for download progress
@@ -747,6 +1108,250 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
           child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+}
+
+/// Folder progress indicator widget
+class _FolderProgressIndicator extends StatefulWidget {
+  final List models;
+  final String base;
+  final bool isDark;
+
+  const _FolderProgressIndicator({
+    required this.models,
+    required this.base,
+    required this.isDark,
+  });
+
+  @override
+  State<_FolderProgressIndicator> createState() => _FolderProgressIndicatorState();
+}
+
+class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
+  final VideoProgressManager _progressManager = VideoProgressManager();
+  FolderProgress? _folderProgress;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFolderProgress();
+  }
+
+  Future<void> _loadFolderProgress() async {
+    await _progressManager.init();
+
+    // Get all video URLs in this folder
+    final videoUrls = widget.models
+        .where((model) => model.isFile && _isMediaFile(model.route.toLowerCase()))
+        .map((model) => widget.base + model.route)
+        .toList()
+        .cast<String>();
+
+    if (videoUrls.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final progress = await _progressManager.getFolderProgress(videoUrls);
+
+    if (mounted) {
+      setState(() {
+        _folderProgress = progress;
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool _isMediaFile(String fileName) {
+    return fileName.endsWith('.mp4') ||
+        fileName.endsWith('.mkv') ||
+        fileName.endsWith('.avi') ||
+        fileName.endsWith('.mov') ||
+        fileName.endsWith('.webm') ||
+        fileName.endsWith('.mp3') ||
+        fileName.endsWith('.wav') ||
+        fileName.endsWith('.flac') ||
+        fileName.endsWith('.m4a') ||
+        fileName.endsWith('.aac') ||
+        fileName.endsWith('.ogg');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading || _folderProgress == null || !_folderProgress!.hasAnyProgress) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      margin: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+        bottom: 8,
+      ),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: widget.isDark
+              ? [
+                  const Color(0xFF1F2937).withOpacity(0.9),
+                  const Color(0xFF374151).withOpacity(0.8),
+                ]
+              : [
+                  Colors.white.withOpacity(0.95),
+                  Colors.white.withOpacity(0.9),
+                ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: (widget.isDark ? Colors.black : Colors.grey.shade400).withOpacity(0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: (widget.isDark ? Colors.white : Colors.black).withOpacity(0.1),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                _folderProgress!.isFullyCompleted
+                    ? Icons.check_circle_rounded
+                    : Icons.play_circle_outline_rounded,
+                color: _folderProgress!.isFullyCompleted
+                    ? Colors.green
+                    : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Folder Progress',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: widget.isDark
+                            ? const Color(0xFFF9FAFB)
+                            : const Color(0xFF1F2937),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${_folderProgress!.completedVideos} of ${_folderProgress!.totalVideos} videos completed',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: widget.isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _folderProgress!.isFullyCompleted
+                      ? Colors.green.withOpacity(0.15)
+                      : (widget.isDark
+                          ? const Color(0xFF60A5FA).withOpacity(0.15)
+                          : const Color(0xFF3B82F6).withOpacity(0.15)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  '${_folderProgress!.completionPercentage}%',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: _folderProgress!.isFullyCompleted
+                        ? Colors.green
+                        : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: _folderProgress!.overallProgress,
+              backgroundColor: widget.isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.black.withOpacity(0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                _folderProgress!.isFullyCompleted
+                    ? Colors.green
+                    : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+              ),
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Widget for displaying a statistic row
+class _StatRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color? color;
+
+  const _StatRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 20,
+          color: color ?? (isDark ? Colors.white70 : Colors.black87),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color ?? (isDark ? Colors.white : Colors.black),
+          ),
         ),
       ],
     );

@@ -9,6 +9,8 @@ import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_state.dart';
+import 'package:samftp/core/managers/video_progress_manager.dart';
+import 'dart:async';
 
 @RoutePage()
 class VideoPlayerPage extends StatefulWidget {
@@ -38,6 +40,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool isInitialized = false;
   String? currentUrl;
 
+  // Video progress tracking
+  final VideoProgressManager _progressManager = VideoProgressManager();
+  Timer? _progressTimer;
+  bool _isCompleted = false;
+  Duration? _savedPosition;
+
   // Check if running on desktop
   bool get isDesktop => !kIsWeb && (
     defaultTargetPlatform == TargetPlatform.macOS ||
@@ -49,6 +57,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   void initState() {
     super.initState();
     currentUrl = widget.url;
+    _initializeProgressManager();
     _initializeVideoPlayer(widget.url);
 
     // Listen to playlist changes if in playlist mode
@@ -64,6 +73,17 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  /// Initialize progress manager and load saved position
+  Future<void> _initializeProgressManager() async {
+    await _progressManager.init();
+    final progress = await _progressManager.getProgress(widget.url);
+
+    if (progress != null) {
+      _savedPosition = progress.position;
+      _isCompleted = progress.isCompleted;
+    }
+  }
+
   void _initializeVideoPlayer(String url) async {
     if (isDesktop) {
       // Initialize media_kit for desktop
@@ -72,16 +92,32 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       await player.open(Media(url));
 
+      // Restore saved position if available
+      if (_savedPosition != null && _savedPosition!.inSeconds > 5) {
+        await player.seek(_savedPosition!);
+      }
+
       // Listen for video completion on desktop
       player.stream.completed.listen((completed) {
-        if (completed && widget.playlistCubit != null) {
-          widget.playlistCubit!.onItemFinished();
+        if (completed) {
+          _onVideoCompleted();
+          if (widget.playlistCubit != null) {
+            widget.playlistCubit!.onItemFinished();
+          }
         }
       });
+
+      // Start progress tracking for desktop
+      _startProgressTracking();
     } else {
       // Initialize Chewie for mobile
       vpController = vp.VideoPlayerController.networkUrl(Uri.parse(url));
       await vpController.initialize();
+
+      // Restore saved position if available
+      if (_savedPosition != null && _savedPosition!.inSeconds > 5) {
+        await vpController.seekTo(_savedPosition!);
+      }
 
       // Listen for video completion
       vpController.addListener(_videoListener);
@@ -95,6 +131,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         allowMuting: true,
         showControls: true,
       );
+
+      // Start progress tracking for mobile
+      _startProgressTracking();
     }
 
     setState(() {
@@ -107,6 +146,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     // Check if video finished playing (mobile only)
     if (vpController.value.position >= vpController.value.duration &&
         vpController.value.duration.inSeconds > 0) {
+      _onVideoCompleted();
       // Auto-advance to next video in playlist mode
       if (widget.playlistCubit != null) {
         widget.playlistCubit!.onItemFinished();
@@ -114,10 +154,130 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     }
   }
 
+  /// Start tracking video progress periodically
+  void _startProgressTracking() {
+    _progressTimer?.cancel();
+    _progressTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      _saveCurrentProgress();
+    });
+  }
+
+  /// Save current playback progress
+  Future<void> _saveCurrentProgress() async {
+    if (currentUrl == null) return;
+
+    Duration position;
+    Duration duration;
+
+    if (isDesktop) {
+      position = player.state.position;
+      duration = player.state.duration;
+    } else {
+      if (!vpController.value.isInitialized) return;
+      position = vpController.value.position;
+      duration = vpController.value.duration;
+    }
+
+    // Only save if we have valid duration
+    if (duration.inMilliseconds > 0) {
+      await _progressManager.saveProgress(
+        videoUrl: currentUrl!,
+        position: position,
+        duration: duration,
+      );
+
+      // Check if we should auto-complete at 85%
+      final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
+      if (progressPercentage >= 0.85 && !_isCompleted) {
+        setState(() {
+          _isCompleted = true;
+        });
+        // Show completion notification
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Video marked as completed'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  /// Handle video completion
+  void _onVideoCompleted() {
+    if (currentUrl == null) return;
+
+    Duration duration;
+    if (isDesktop) {
+      duration = player.state.duration;
+    } else {
+      duration = vpController.value.duration;
+    }
+
+    // Mark as completed
+    _progressManager.markAsCompleted(currentUrl!, duration);
+    setState(() {
+      _isCompleted = true;
+    });
+  }
+
+  /// Manually mark video as completed
+  Future<void> _markAsCompleted() async {
+    if (currentUrl == null) return;
+
+    Duration duration;
+    if (isDesktop) {
+      duration = player.state.duration;
+    } else {
+      duration = vpController.value.duration;
+    }
+
+    await _progressManager.markAsCompleted(currentUrl!, duration);
+    setState(() {
+      _isCompleted = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Video marked as completed'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  /// Mark video as incomplete
+  Future<void> _markAsIncomplete() async {
+    if (currentUrl == null) return;
+
+    await _progressManager.markAsIncomplete(currentUrl!);
+    setState(() {
+      _isCompleted = false;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Video marked as incomplete'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
   void _switchVideo(String newUrl) async {
+    // Save progress before switching
+    await _saveCurrentProgress();
+
     setState(() {
       isInitialized = false;
     });
+
+    // Cancel progress timer
+    _progressTimer?.cancel();
 
     if (isDesktop) {
       // Stop the current player before switching
@@ -131,12 +291,23 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       chewieController.dispose();
     }
 
+    // Load progress for new video
+    final progress = await _progressManager.getProgress(newUrl);
+    _savedPosition = progress?.position;
+    _isCompleted = progress?.isCompleted ?? false;
+
     // Initialize new video
     _initializeVideoPlayer(newUrl);
   }
 
   @override
   void dispose() {
+    // Save progress before disposing
+    _saveCurrentProgress();
+
+    // Cancel progress tracking timer
+    _progressTimer?.cancel();
+
     if (isDesktop) {
       player.dispose();
     } else {
@@ -235,71 +406,98 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-        actions: isPlaylistMode
-            ? [
-                BlocBuilder<PlaylistCubit, PlaylistState>(
-                  bloc: widget.playlistCubit,
-                  builder: (context, state) {
-                    if (state is PlaylistLoaded) {
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Previous button
-                          Container(
-                            margin: const EdgeInsets.only(right: 4),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                            child: IconButton(
-                              style: TextButton.styleFrom(
-                                iconColor: Colors.white,
-                                padding: const EdgeInsets.all(8),
-                              ),
-                              onPressed: state.hasPrevious
-                                  ? () => widget.playlistCubit!.previous()
-                                  : null,
-                              icon: Icon(
-                                Icons.skip_previous_rounded,
-                                size: 24,
-                                color: state.hasPrevious
-                                    ? Colors.white
-                                    : Colors.white38,
-                              ),
-                            ),
+        actions: [
+          // Mark as completed button
+          Container(
+            margin: const EdgeInsets.only(right: 4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.2),
+            ),
+            child: IconButton(
+              style: TextButton.styleFrom(
+                iconColor: Colors.white,
+                padding: const EdgeInsets.all(8),
+              ),
+              onPressed: () {
+                if (_isCompleted) {
+                  _markAsIncomplete();
+                } else {
+                  _markAsCompleted();
+                }
+              },
+              icon: Icon(
+                _isCompleted ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                size: 24,
+                color: _isCompleted ? Colors.green : Colors.white,
+              ),
+              tooltip: _isCompleted ? 'Mark as incomplete' : 'Mark as completed',
+            ),
+          ),
+          if (isPlaylistMode) ...[
+            BlocBuilder<PlaylistCubit, PlaylistState>(
+              bloc: widget.playlistCubit,
+              builder: (context, state) {
+                if (state is PlaylistLoaded) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Previous button
+                      Container(
+                        margin: const EdgeInsets.only(right: 4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        child: IconButton(
+                          style: TextButton.styleFrom(
+                            iconColor: Colors.white,
+                            padding: const EdgeInsets.all(8),
                           ),
-                          // Next button
-                          Container(
-                            margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withOpacity(0.2),
-                            ),
-                            child: IconButton(
-                              style: TextButton.styleFrom(
-                                iconColor: Colors.white,
-                                padding: const EdgeInsets.all(8),
-                              ),
-                              onPressed: state.hasNext
-                                  ? () => widget.playlistCubit!.next()
-                                  : null,
-                              icon: Icon(
-                                Icons.skip_next_rounded,
-                                size: 24,
-                                color: state.hasNext
-                                    ? Colors.white
-                                    : Colors.white38,
-                              ),
-                            ),
+                          onPressed: state.hasPrevious
+                              ? () => widget.playlistCubit!.previous()
+                              : null,
+                          icon: Icon(
+                            Icons.skip_previous_rounded,
+                            size: 24,
+                            color: state.hasPrevious
+                                ? Colors.white
+                                : Colors.white38,
                           ),
-                        ],
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  },
-                ),
-              ]
-            : null,
+                        ),
+                      ),
+                      // Next button
+                      Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.2),
+                        ),
+                        child: IconButton(
+                          style: TextButton.styleFrom(
+                            iconColor: Colors.white,
+                            padding: const EdgeInsets.all(8),
+                          ),
+                          onPressed: state.hasNext
+                              ? () => widget.playlistCubit!.next()
+                              : null,
+                          icon: Icon(
+                            Icons.skip_next_rounded,
+                            size: 24,
+                            color: state.hasNext
+                                ? Colors.white
+                                : Colors.white38,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ],
       ),
       body: Container(
         decoration: BoxDecoration(

@@ -10,6 +10,7 @@ import 'package:mime/mime.dart';
 import 'package:samftp/core/routes/app_routes.gr.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:samftp/core/managers/video_progress_manager.dart';
 
 class ListItem extends StatefulWidget {
   const ListItem({super.key, required this.model, required this.base});
@@ -26,6 +27,10 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
+  final VideoProgressManager _progressManager = VideoProgressManager();
+  VideoProgress? _videoProgress;
+  bool _progressLoaded = false;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +41,33 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.02).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
+
+    // Load video progress if this is a video file
+    if (widget.model.isFile && _isVideoFile(widget.model.route)) {
+      _loadVideoProgress();
+    }
+  }
+
+  Future<void> _loadVideoProgress() async {
+    await _progressManager.init();
+    final url = widget.base + widget.model.route;
+    final progress = await _progressManager.getProgress(url);
+
+    if (mounted) {
+      setState(() {
+        _videoProgress = progress;
+        _progressLoaded = true;
+      });
+    }
+  }
+
+  bool _isVideoFile(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    return extension == 'mp4' ||
+        extension == 'mkv' ||
+        extension == 'avi' ||
+        extension == 'mov' ||
+        extension == 'webm';
   }
 
   @override
@@ -168,30 +200,90 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                     vertical: 12,
                   ),
                   titleAlignment: ListTileTitleAlignment.center,
-                  leading: Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: _getIconColor(fileName, isDark).withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getFileIcon(fileName),
-                      color: _getIconColor(fileName, isDark),
-                      size: 24,
-                    ),
+                  leading: Stack(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _getIconColor(fileName, isDark).withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          _getFileIcon(fileName),
+                          color: _getIconColor(fileName, isDark),
+                          size: 24,
+                        ),
+                      ),
+                      // Completion badge for videos
+                      if (_videoProgress?.isCompleted == true)
+                        Positioned(
+                          right: -2,
+                          top: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 12,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  title: Text(
-                    fileName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      letterSpacing: -0.3,
-                      color: isDark
-                          ? const Color(0xFFF9FAFB)
-                          : const Color(0xFF1F2937),
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        fileName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          letterSpacing: -0.3,
+                          color: isDark
+                              ? const Color(0xFFF9FAFB)
+                              : const Color(0xFF1F2937),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // Progress bar for videos
+                      if (_videoProgress != null && !_videoProgress!.isCompleted)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: _videoProgress!.progressPercentage,
+                                  backgroundColor: isDark
+                                      ? Colors.white.withOpacity(0.1)
+                                      : Colors.black.withOpacity(0.1),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _getIconColor(fileName, isDark),
+                                  ),
+                                  minHeight: 4,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${(_videoProgress!.progressPercentage * 100).round()}%',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: isDark
+                                      ? Colors.white.withOpacity(0.5)
+                                      : Colors.black.withOpacity(0.5),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                   trailing: !(Platform.isAndroid || Platform.isIOS)
                       ? widget.model.isFile
