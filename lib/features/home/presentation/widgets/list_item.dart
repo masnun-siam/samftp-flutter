@@ -237,18 +237,33 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                   title: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        fileName,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          letterSpacing: -0.3,
-                          color: isDark
-                              ? const Color(0xFFF9FAFB)
-                              : const Color(0xFF1F2937),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              fileName,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                                letterSpacing: -0.3,
+                                color: isDark
+                                    ? const Color(0xFFF9FAFB)
+                                    : const Color(0xFF1F2937),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          // Checkmark icon for completed videos
+                          if (_videoProgress?.isCompleted == true) ...[
+                            const SizedBox(width: 8),
+                            Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 20,
+                            ),
+                          ],
+                        ],
                       ),
                       // Progress bar for videos
                       if (_videoProgress != null && !_videoProgress!.isCompleted)
@@ -305,6 +320,7 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 itemBuilder: (context) {
+                                  final isVideoFile = _isVideoFile(widget.model.route);
                                   return [
                                     PopupMenuItem(
                                       value: 'play',
@@ -356,6 +372,58 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                         ],
                                       ),
                                     ),
+                                    // Mark as watched/unwatched option for videos
+                                    if (isVideoFile)
+                                      PopupMenuItem(
+                                        value: 'toggle_watched',
+                                        onTap: () async {
+                                          final url = widget.base + widget.model.route;
+                                          await _progressManager.init();
+                                          
+                                          if (_videoProgress?.isCompleted == true) {
+                                            await _progressManager.markAsIncomplete(url);
+                                          } else {
+                                            // Use existing duration if available, otherwise use a default
+                                            final duration = _videoProgress?.duration ?? const Duration(hours: 1);
+                                            await _progressManager.markAsCompleted(url, duration);
+                                          }
+                                          
+                                          // Reload progress
+                                          await _loadVideoProgress();
+                                          
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  _videoProgress?.isCompleted == true
+                                                      ? 'Marked as watched'
+                                                      : 'Marked as unwatched',
+                                                ),
+                                                duration: const Duration(seconds: 1),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              _videoProgress?.isCompleted == true
+                                                  ? Icons.check_circle_outline
+                                                  : Icons.check_circle,
+                                              size: 20,
+                                              color: isDark
+                                                  ? const Color(0xFFF9FAFB)
+                                                  : const Color(0xFF1F2937),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              _videoProgress?.isCompleted == true
+                                                  ? 'Mark as Unwatched'
+                                                  : 'Mark as Watched',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     PopupMenuItem(
                                       value: 'mpv',
                                       onTap: () {

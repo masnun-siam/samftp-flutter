@@ -45,6 +45,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   Timer? _progressTimer;
   bool _isCompleted = false;
   Duration? _savedPosition;
+  bool _hasShownResumeDialog = false;
 
   // Check if running on desktop
   bool get isDesktop => !kIsWeb && (
@@ -92,9 +93,16 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       await player.open(Media(url));
 
-      // Restore saved position if available
-      if (_savedPosition != null && _savedPosition!.inSeconds > 5) {
-        await player.seek(_savedPosition!);
+      // Show resume dialog if saved position exists and not already shown
+      if (_savedPosition != null && _savedPosition!.inSeconds > 5 && !_hasShownResumeDialog) {
+        _hasShownResumeDialog = true;
+        // Pause the player until user decides
+        await player.pause();
+        
+        // Show resume dialog after a short delay to ensure player is ready
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showResumeDialog();
+        });
       }
 
       // Listen for video completion on desktop
@@ -114,9 +122,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       vpController = vp.VideoPlayerController.networkUrl(Uri.parse(url));
       await vpController.initialize();
 
-      // Restore saved position if available
-      if (_savedPosition != null && _savedPosition!.inSeconds > 5) {
-        await vpController.seekTo(_savedPosition!);
+      // Show resume dialog if saved position exists and not already shown
+      if (_savedPosition != null && _savedPosition!.inSeconds > 5 && !_hasShownResumeDialog) {
+        _hasShownResumeDialog = true;
+        // Don't auto-play if we need to show resume dialog
+        
+        // Show resume dialog after a short delay to ensure player is ready
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showResumeDialog();
+        });
       }
 
       // Listen for video completion
@@ -124,7 +138,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       chewieController = ChewieController(
         videoPlayerController: vpController,
-        autoPlay: true,
+        autoPlay: _savedPosition == null || _savedPosition!.inSeconds <= 5, // Only auto-play if no resume needed
         looping: false,
         allowedScreenSleep: false,
         allowFullScreen: true,
@@ -140,6 +154,82 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       isInitialized = true;
       currentUrl = url;
     });
+  }
+
+  /// Show resume dialog to user
+  Future<void> _showResumeDialog() async {
+    if (!mounted) return;
+
+    final savedPos = _savedPosition!;
+    final hours = savedPos.inHours;
+    final minutes = savedPos.inMinutes.remainder(60);
+    final seconds = savedPos.inSeconds.remainder(60);
+    
+    String timeString;
+    if (hours > 0) {
+      timeString = '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    } else {
+      timeString = '$minutes:${seconds.toString().padLeft(2, '0')}';
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Resume playback?',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 20,
+          ),
+        ),
+        content: Text(
+          'This video was previously played. Would you like to resume from $timeString?',
+          style: const TextStyle(fontSize: 16),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text(
+              'Start from beginning',
+              style: TextStyle(fontSize: 15),
+            ),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text(
+              'Resume',
+              style: TextStyle(fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result == true) {
+      // Resume from saved position
+      if (isDesktop) {
+        await player.seek(_savedPosition!);
+        await player.play();
+      } else {
+        await vpController.seekTo(_savedPosition!);
+        await vpController.play();
+      }
+    } else {
+      // Start from beginning
+      if (isDesktop) {
+        await player.seek(Duration.zero);
+        await player.play();
+      } else {
+        await vpController.seekTo(Duration.zero);
+        await vpController.play();
+      }
+    }
   }
 
   void _videoListener() {
@@ -278,6 +368,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
     // Cancel progress timer
     _progressTimer?.cancel();
+
+    // Reset resume dialog flag for new video
+    _hasShownResumeDialog = false;
 
     if (isDesktop) {
       // Stop the current player before switching

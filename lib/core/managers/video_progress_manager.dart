@@ -102,11 +102,15 @@ class VideoProgressManager {
 
     final shouldComplete = forceCompleted ?? progressPercentage >= 0.85;
 
+    // Preserve completed status if already marked as completed
+    // Only set to completed if it should be completed or was already completed
+    final isCompleted = (existingProgress?.isCompleted ?? false) || shouldComplete;
+
     final progress = VideoProgress(
       videoUrl: videoUrl,
       position: position,
       duration: duration,
-      isCompleted: shouldComplete || (existingProgress?.isCompleted ?? false),
+      isCompleted: isCompleted,
       lastWatched: DateTime.now(),
     );
 
