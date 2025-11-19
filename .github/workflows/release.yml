@@ -2,8 +2,8 @@ name: Build and Release APK
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - 'v*'  # Only run when a tag starting with 'v' is pushed
 
 jobs:
   build-and-release:
@@ -85,35 +85,29 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
-      - name: Generate release tag
+      - name: Get release tag
         id: tag
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
-          TAG="v${VERSION}"
-          COUNTER=1
-
-          # Check if tag exists and increment if necessary
-          while git rev-parse "$TAG" >/dev/null 2>&1; do
-            TAG="v${VERSION}-build${COUNTER}"
-            COUNTER=$((COUNTER + 1))
-          done
-
+          TAG="${{ github.ref_name }}"
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "Release tag: $TAG"
 
       - name: Get commit messages since last tag
         id: changelog
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$LAST_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          CURRENT_TAG="${{ github.ref_name }}"
+          # Get the previous tag (excluding current tag)
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${CURRENT_TAG}^ 2>/dev/null || echo "")
+
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges ${CURRENT_TAG})
           else
-            CHANGELOG=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..${CURRENT_TAG} --pretty=format:"- %s (%h)" --no-merges)
           fi
 
           # Save changelog to a file to handle multiline
           echo "$CHANGELOG" > changelog.txt
-          echo "Generated changelog"
+          echo "Generated changelog from ${PREVIOUS_TAG:-beginning} to ${CURRENT_TAG}"
 
       - name: Rename APK
         run: |
