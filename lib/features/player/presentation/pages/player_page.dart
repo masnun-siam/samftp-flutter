@@ -1,16 +1,17 @@
+import 'dart:async';
+
 import 'package:auto_route/annotations.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_character_entities/html_character_entities.dart';
-import 'package:video_player/video_player.dart' as vp;
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:samftp/core/managers/video_progress_manager.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_state.dart';
-import 'package:samftp/core/managers/video_progress_manager.dart';
-import 'dart:async';
+import 'package:video_player/video_player.dart' as vp;
 
 @RoutePage()
 class VideoPlayerPage extends StatefulWidget {
@@ -48,11 +49,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   bool _hasShownResumeDialog = false;
 
   // Check if running on desktop
-  bool get isDesktop => !kIsWeb && (
-    defaultTargetPlatform == TargetPlatform.macOS ||
-    defaultTargetPlatform == TargetPlatform.windows ||
-    defaultTargetPlatform == TargetPlatform.linux
-  );
+  bool get isDesktop =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.macOS ||
+          defaultTargetPlatform == TargetPlatform.windows ||
+          defaultTargetPlatform == TargetPlatform.linux);
 
   @override
   void initState() {
@@ -94,11 +95,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       await player.open(Media(url));
 
       // Show resume dialog if saved position exists and not already shown
-      if (_savedPosition != null && _savedPosition!.inSeconds > 5 && !_hasShownResumeDialog) {
+      if (_savedPosition != null &&
+          _savedPosition!.inSeconds > 5 &&
+          !_hasShownResumeDialog) {
         _hasShownResumeDialog = true;
         // Pause the player until user decides
         await player.pause();
-        
+
         // Show resume dialog after a short delay to ensure player is ready
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showResumeDialog();
@@ -123,10 +126,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       await vpController.initialize();
 
       // Show resume dialog if saved position exists and not already shown
-      if (_savedPosition != null && _savedPosition!.inSeconds > 5 && !_hasShownResumeDialog) {
+      if (_savedPosition != null &&
+          _savedPosition!.inSeconds > 5 &&
+          !_hasShownResumeDialog) {
         _hasShownResumeDialog = true;
         // Don't auto-play if we need to show resume dialog
-        
+
         // Show resume dialog after a short delay to ensure player is ready
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _showResumeDialog();
@@ -138,7 +143,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       chewieController = ChewieController(
         videoPlayerController: vpController,
-        autoPlay: _savedPosition == null || _savedPosition!.inSeconds <= 5, // Only auto-play if no resume needed
+        autoPlay: _savedPosition == null ||
+            _savedPosition!.inSeconds <=
+                5, // Only auto-play if no resume needed
         looping: false,
         allowedScreenSleep: false,
         allowFullScreen: true,
@@ -164,10 +171,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     final hours = savedPos.inHours;
     final minutes = savedPos.inMinutes.remainder(60);
     final seconds = savedPos.inSeconds.remainder(60);
-    
+
     String timeString;
     if (hours > 0) {
-      timeString = '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+      timeString =
+          '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
     } else {
       timeString = '$minutes:${seconds.toString().padLeft(2, '0')}';
     }
@@ -277,7 +285,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       );
 
       // Check if we should auto-complete at 85%
-      final progressPercentage = position.inMilliseconds / duration.inMilliseconds;
+      final progressPercentage =
+          position.inMilliseconds / duration.inMilliseconds;
       if (progressPercentage >= 0.85 && !_isCompleted) {
         setState(() {
           _isCompleted = true;
@@ -413,20 +422,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isPlaylistMode = widget.playlistCubit != null;
 
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.black.withOpacity(0.7),
+        backgroundColor: Colors.black.withValues(alpha: 0.7),
         elevation: 0,
         leading: Container(
           margin: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 0.2),
           ),
           child: IconButton(
             style: TextButton.styleFrom(
@@ -505,7 +513,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             margin: const EdgeInsets.only(right: 4),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
             ),
             child: IconButton(
               style: TextButton.styleFrom(
@@ -520,11 +528,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 }
               },
               icon: Icon(
-                _isCompleted ? Icons.check_circle_rounded : Icons.check_circle_outline_rounded,
+                _isCompleted
+                    ? Icons.check_circle_rounded
+                    : Icons.check_circle_outline_rounded,
                 size: 24,
                 color: _isCompleted ? Colors.green : Colors.white,
               ),
-              tooltip: _isCompleted ? 'Mark as incomplete' : 'Mark as completed',
+              tooltip:
+                  _isCompleted ? 'Mark as incomplete' : 'Mark as completed',
             ),
           ),
           if (isPlaylistMode) ...[
@@ -540,7 +551,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         margin: const EdgeInsets.only(right: 4),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                         child: IconButton(
                           style: TextButton.styleFrom(
@@ -564,7 +575,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         margin: const EdgeInsets.only(right: 8),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                         ),
                         child: IconButton(
                           style: TextButton.styleFrom(
@@ -577,9 +588,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           icon: Icon(
                             Icons.skip_next_rounded,
                             size: 24,
-                            color: state.hasNext
-                                ? Colors.white
-                                : Colors.white38,
+                            color:
+                                state.hasNext ? Colors.white : Colors.white38,
                           ),
                         ),
                       ),
@@ -615,7 +625,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                       ),
                       child: const CircularProgressIndicator(
                         color: Colors.white,

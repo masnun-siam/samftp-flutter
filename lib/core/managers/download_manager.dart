@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 
@@ -27,7 +28,7 @@ class DownloadManager {
         return directory.path;
       }
     } catch (e) {
-      print('Error getting downloads directory: $e');
+      debugPrint('Error getting downloads directory: $e');
     }
 
     // Fallback to app documents directory
@@ -77,14 +78,14 @@ class DownloadManager {
     } on DioException catch (e) {
       _activeTasks.remove(file.url);
       if (e.type == DioExceptionType.cancel) {
-        print('Download cancelled: ${file.name}');
+        debugPrint('Download cancelled: ${file.name}');
       } else {
-        print('Download error: $e');
+        debugPrint('Download error: $e');
       }
       return false;
     } catch (e) {
       _activeTasks.remove(file.url);
-      print('Unexpected error during download: $e');
+      debugPrint('Unexpected error during download: $e');
       return false;
     }
   }

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:samftp/features/server/data/models/server_dto.dart';
@@ -53,7 +54,7 @@ class ConfigManager {
 
       return servers;
     } catch (e) {
-      print('Error loading servers: $e');
+      debugPrint('Error loading servers: $e');
       return [];
     }
   }
@@ -93,7 +94,7 @@ class ConfigManager {
       await file.writeAsString(jsonEncode(config));
       return true;
     } catch (e) {
-      print('Error saving servers: $e');
+      debugPrint('Error saving servers: $e');
       return false;
     }
   }

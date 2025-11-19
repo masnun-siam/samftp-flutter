@@ -49,12 +49,12 @@ class _AppButtonState extends State<AppButton>
     if (!isSuccess) {
       return isDark
           ? [
-              const Color(0xFF991B1B).withOpacity(0.3),
-              const Color(0xFF7F1D1D).withOpacity(0.2),
+              const Color(0xFF991B1B).withValues(alpha: 0.3),
+              const Color(0xFF7F1D1D).withValues(alpha: 0.2),
             ]
           : [
-              const Color(0xFFFECDD3).withOpacity(0.8),
-              const Color(0xFFFDA4AF).withOpacity(0.6),
+              const Color(0xFFFECDD3).withValues(alpha: 0.8),
+              const Color(0xFFFDA4AF).withValues(alpha: 0.6),
             ];
     }
 
@@ -113,7 +113,8 @@ class _AppButtonState extends State<AppButton>
       },
       builder: (context, snapshot) {
         final isSuccess = snapshot.data?.response?.time != null;
-        final gradientColors = _getGradientColors(widget.title, isSuccess, isDark);
+        final gradientColors =
+            _getGradientColors(widget.title, isSuccess, isDark);
 
         return MouseRegion(
           onEnter: (_) {
@@ -137,7 +138,8 @@ class _AppButtonState extends State<AppButton>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: gradientColors.first.withOpacity(_isHovering ? 0.4 : 0.2),
+                    color: gradientColors.first
+                        .withValues(alpha: _isHovering ? 0.4 : 0.2),
                     blurRadius: _isHovering ? 20 : 12,
                     offset: Offset(0, _isHovering ? 8 : 4),
                   ),
@@ -156,7 +158,8 @@ class _AppButtonState extends State<AppButton>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: Colors.white.withOpacity(isDark ? 0.2 : 0.3),
+                            color: Colors.white
+                                .withValues(alpha: isDark ? 0.2 : 0.3),
                             width: 1.5,
                           ),
                         ),
@@ -168,7 +171,7 @@ class _AppButtonState extends State<AppButton>
                               if (!isSuccess)
                                 Icon(
                                   Icons.cloud_off_rounded,
-                                  color: Colors.white.withOpacity(0.9),
+                                  color: Colors.white.withValues(alpha: 0.9),
                                   size: 32,
                                 ),
                               if (!isSuccess) const SizedBox(height: 12),
@@ -183,7 +186,8 @@ class _AppButtonState extends State<AppButton>
                                   height: 1.3,
                                   shadows: [
                                     Shadow(
-                                      color: Colors.black.withOpacity(0.3),
+                                      color:
+                                          Colors.black.withValues(alpha: 0.3),
                                       offset: const Offset(0, 2),
                                       blurRadius: 4,
                                     ),

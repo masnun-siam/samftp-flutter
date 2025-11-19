@@ -15,7 +15,6 @@ class ExternalVideoPlayerLauncher {
         action: 'action_view',
         data: Uri.parse(url).toString(),
 
-        //TODO test this
         arguments: args,
         flags: <int>[
           Flag.FLAG_ACTIVITY_NEW_TASK,

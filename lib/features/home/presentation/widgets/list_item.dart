@@ -7,10 +7,10 @@ import 'package:external_video_player_launcher/external_video_player_launcher.da
 import 'package:flutter/material.dart';
 import 'package:html_character_entities/html_character_entities.dart';
 import 'package:mime/mime.dart';
+import 'package:samftp/core/managers/video_progress_manager.dart';
 import 'package:samftp/core/routes/app_routes.gr.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:samftp/core/managers/video_progress_manager.dart';
 
 class ListItem extends StatefulWidget {
   const ListItem({super.key, required this.model, required this.base});
@@ -22,14 +22,14 @@ class ListItem extends StatefulWidget {
   State<ListItem> createState() => _ListItemState();
 }
 
-class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin {
+class _ListItemState extends State<ListItem>
+    with SingleTickerProviderStateMixin {
   bool _isHovering = false;
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
 
   final VideoProgressManager _progressManager = VideoProgressManager();
   VideoProgress? _videoProgress;
-  bool _progressLoaded = false;
 
   @override
   void initState() {
@@ -56,7 +56,6 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
     if (mounted) {
       setState(() {
         _videoProgress = progress;
-        _progressLoaded = true;
       });
     }
   }
@@ -164,18 +163,20 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
               end: Alignment.bottomRight,
               colors: isDark
                   ? [
-                      const Color(0xFF1F2937).withOpacity(_isHovering ? 0.9 : 0.7),
-                      const Color(0xFF374151).withOpacity(_isHovering ? 0.8 : 0.6),
+                      const Color(0xFF1F2937)
+                          .withValues(alpha: _isHovering ? 0.9 : 0.7),
+                      const Color(0xFF374151)
+                          .withValues(alpha: _isHovering ? 0.8 : 0.6),
                     ]
                   : [
-                      Colors.white.withOpacity(_isHovering ? 0.95 : 0.8),
-                      Colors.white.withOpacity(_isHovering ? 0.9 : 0.7),
+                      Colors.white.withValues(alpha: _isHovering ? 0.95 : 0.8),
+                      Colors.white.withValues(alpha: _isHovering ? 0.9 : 0.7),
                     ],
             ),
             boxShadow: [
               BoxShadow(
                 color: (isDark ? Colors.black : Colors.grey.shade400)
-                    .withOpacity(_isHovering ? 0.3 : 0.15),
+                    .withValues(alpha: _isHovering ? 0.3 : 0.15),
                 blurRadius: _isHovering ? 16 : 8,
                 offset: Offset(0, _isHovering ? 6 : 3),
               ),
@@ -190,7 +191,7 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: (isDark ? Colors.white : Colors.black)
-                        .withOpacity(_isHovering ? 0.2 : 0.1),
+                        .withValues(alpha: _isHovering ? 0.2 : 0.1),
                     width: 1,
                   ),
                 ),
@@ -205,7 +206,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: _getIconColor(fileName, isDark).withOpacity(0.15),
+                          color: _getIconColor(fileName, isDark)
+                              .withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -266,7 +268,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                         ],
                       ),
                       // Progress bar for videos
-                      if (_videoProgress != null && !_videoProgress!.isCompleted)
+                      if (_videoProgress != null &&
+                          !_videoProgress!.isCompleted)
                         Padding(
                           padding: const EdgeInsets.only(top: 6),
                           child: Column(
@@ -277,8 +280,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                 child: LinearProgressIndicator(
                                   value: _videoProgress!.progressPercentage,
                                   backgroundColor: isDark
-                                      ? Colors.white.withOpacity(0.1)
-                                      : Colors.black.withOpacity(0.1),
+                                      ? Colors.white.withValues(alpha: 0.1)
+                                      : Colors.black.withValues(alpha: 0.1),
                                   valueColor: AlwaysStoppedAnimation<Color>(
                                     _getIconColor(fileName, isDark),
                                   ),
@@ -291,8 +294,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                 style: TextStyle(
                                   fontSize: 10,
                                   color: isDark
-                                      ? Colors.white.withOpacity(0.5)
-                                      : Colors.black.withOpacity(0.5),
+                                      ? Colors.white.withValues(alpha: 0.5)
+                                      : Colors.black.withValues(alpha: 0.5),
                                 ),
                               ),
                             ],
@@ -305,8 +308,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                           ? Container(
                               decoration: BoxDecoration(
                                 color: (isDark
-                                        ? Colors.white.withOpacity(0.1)
-                                        : Colors.black.withOpacity(0.05)),
+                                    ? Colors.white.withValues(alpha: 0.1)
+                                    : Colors.black.withValues(alpha: 0.05)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: PopupMenuButton(
@@ -320,28 +323,34 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 itemBuilder: (context) {
-                                  final isVideoFile = _isVideoFile(widget.model.route);
+                                  final isVideoFile =
+                                      _isVideoFile(widget.model.route);
                                   return [
                                     PopupMenuItem(
                                       value: 'play',
-                                      onTap: () {
-                                        print(widget.base);
-                                        print(widget.model);
+                                      onTap: () async {
+                                        debugPrint(widget.base);
+                                        debugPrint(widget.model.toString());
                                         if (!widget.model.isFile) {
                                           context.router.push(
                                             ContentRoute(
-                                              title: Uri.decodeFull(
-                                                  widget.model.route.split('/').last),
+                                              title: Uri.decodeFull(widget
+                                                  .model.route
+                                                  .split('/')
+                                                  .last),
                                               base: widget.base,
-                                              url: widget.base + widget.model.route,
+                                              url: widget.base +
+                                                  widget.model.route,
                                             ),
                                           );
                                         } else {
                                           // play video
-                                          final url = widget.base + widget.model.route;
-                                          print(url);
+                                          final url =
+                                              widget.base + widget.model.route;
+                                          debugPrint(url);
                                           if (isImage(url)) {
-                                            final imageProvider = Image.network(url).image;
+                                            final imageProvider =
+                                                Image.network(url).image;
                                             showImageViewer(
                                               context,
                                               imageProvider,
@@ -350,19 +359,24 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                               useSafeArea: true,
                                             );
                                           } else {
-                                            context.router.push(
+                                            await context.router.push(
                                               VideoPlayerRoute(
                                                 url: url,
-                                                title: HtmlCharacterEntities.decode(
-                                                    widget.model.route.split('/').last),
+                                                title: HtmlCharacterEntities
+                                                    .decode(widget.model.route
+                                                        .split('/')
+                                                        .last),
                                               ),
                                             );
+                                            // Reload progress when returning from player
+                                            await _loadVideoProgress();
                                           }
                                         }
                                       },
                                       child: Row(
                                         children: [
-                                          Icon(Icons.play_circle_outline_rounded,
+                                          Icon(
+                                              Icons.play_circle_outline_rounded,
                                               size: 20,
                                               color: isDark
                                                   ? const Color(0xFFF9FAFB)
@@ -377,29 +391,38 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                       PopupMenuItem(
                                         value: 'toggle_watched',
                                         onTap: () async {
-                                          final url = widget.base + widget.model.route;
+                                          final url =
+                                              widget.base + widget.model.route;
                                           await _progressManager.init();
-                                          
-                                          if (_videoProgress?.isCompleted == true) {
-                                            await _progressManager.markAsIncomplete(url);
+
+                                          if (_videoProgress?.isCompleted ==
+                                              true) {
+                                            await _progressManager
+                                                .markAsIncomplete(url);
                                           } else {
                                             // Use existing duration if available, otherwise use a default
-                                            final duration = _videoProgress?.duration ?? const Duration(hours: 1);
-                                            await _progressManager.markAsCompleted(url, duration);
+                                            final duration =
+                                                _videoProgress?.duration ??
+                                                    const Duration(hours: 1);
+                                            await _progressManager
+                                                .markAsCompleted(url, duration);
                                           }
-                                          
+
                                           // Reload progress
                                           await _loadVideoProgress();
-                                          
+
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  _videoProgress?.isCompleted == true
+                                                  _videoProgress?.isCompleted ==
+                                                          true
                                                       ? 'Marked as watched'
                                                       : 'Marked as unwatched',
                                                 ),
-                                                duration: const Duration(seconds: 1),
+                                                duration:
+                                                    const Duration(seconds: 1),
                                               ),
                                             );
                                           }
@@ -407,7 +430,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                         child: Row(
                                           children: [
                                             Icon(
-                                              _videoProgress?.isCompleted == true
+                                              _videoProgress?.isCompleted ==
+                                                      true
                                                   ? Icons.check_circle_outline
                                                   : Icons.check_circle,
                                               size: 20,
@@ -417,7 +441,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                             ),
                                             const SizedBox(width: 12),
                                             Text(
-                                              _videoProgress?.isCompleted == true
+                                              _videoProgress?.isCompleted ==
+                                                      true
                                                   ? 'Mark as Unwatched'
                                                   : 'Mark as Watched',
                                             ),
@@ -428,7 +453,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                       value: 'mpv',
                                       onTap: () {
                                         if (widget.model.isFile) {
-                                          final url = widget.base + widget.model.route;
+                                          final url =
+                                              widget.base + widget.model.route;
                                           if (Platform.isMacOS) {
                                             Process.run(
                                               '/opt/homebrew/bin/mpv',
@@ -436,7 +462,8 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                               runInShell: true,
                                             ).then((value) {
                                               if (value.exitCode != 0) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
                                                   const SnackBar(
                                                     content: Text(
                                                         'Please install mpv player on your device'),
@@ -445,7 +472,13 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                                               }
                                             });
                                           } else {
-                                            Share.share(url);
+                                            final shareParams = ShareParams(
+                                              subject: widget.model.name,
+                                              text: widget.model.name,
+                                              uri: Uri.parse(url),
+                                            );
+                                            SharePlus.instance
+                                                .share(shareParams);
                                           }
                                         }
                                       },
@@ -471,27 +504,35 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                     if (widget.model.isFile) {
                       final url = widget.base + widget.model.route;
                       if (Platform.isAndroid) {
-                        ExternalVideoPlayerLauncher.launchOtherPlayer(url, MIME.video, {
+                        ExternalVideoPlayerLauncher.launchOtherPlayer(
+                            url, MIME.video, {
                           "title": (widget.model.title.endsWith('/')
-                                  ? widget.model.title.substring(0, widget.model.title.length - 1)
+                                  ? widget.model.title.substring(
+                                      0, widget.model.title.length - 1)
                                   : widget.model.title)
                               .split('/')
                               .last,
                         });
                       } else if (Platform.isMacOS) {
-                        Process.run('/opt/homebrew/bin/mpv', [url], runInShell: true);
+                        Process.run('/opt/homebrew/bin/mpv', [url],
+                            runInShell: true);
                       } else {
-                        Share.share(url);
+                        SharePlus.instance.share(
+                          ShareParams(
+                            uri: Uri.parse(url),
+                          ),
+                        );
                       }
                     }
                   },
                   onTap: () async {
-                    print(widget.base);
-                    print(widget.model);
+                    debugPrint(widget.base);
+                    debugPrint(widget.model.toString());
                     if (!widget.model.isFile) {
                       context.router.push(
                         ContentRoute(
-                          title: Uri.decodeFull(widget.model.route.split('/').last),
+                          title: Uri.decodeFull(
+                              widget.model.route.split('/').last),
                           base: widget.base,
                           url: widget.base + widget.model.route,
                         ),
@@ -499,7 +540,7 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                     } else {
                       // play video
                       final url = widget.base + widget.model.route;
-                      print(url);
+                      debugPrint(url);
                       if (isImage(url)) {
                         final imageProvider = Image.network(url).image;
                         showImageViewer(
@@ -510,13 +551,15 @@ class _ListItemState extends State<ListItem> with SingleTickerProviderStateMixin
                           useSafeArea: true,
                         );
                       } else {
-                        context.router.push(
+                        await context.router.push(
                           VideoPlayerRoute(
                             url: url,
-                            title:
-                                HtmlCharacterEntities.decode(widget.model.route.split('/').last),
+                            title: HtmlCharacterEntities.decode(
+                                widget.model.route.split('/').last),
                           ),
                         );
+                        // Reload progress when returning from player
+                        await _loadVideoProgress();
                       }
                     }
                   },

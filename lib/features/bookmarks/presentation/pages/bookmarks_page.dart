@@ -83,9 +83,6 @@ class _BookmarksPageState extends State<BookmarksPage> {
   }
 
   void _navigateToBookmark(Bookmark bookmark) {
-    // Extract the title from the URL (last segment)
-    final title = Uri.decodeFull(bookmark.url.split('/').last);
-
     context.router.push(
       ContentRoute(
         title: bookmark.name,
@@ -143,8 +140,8 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             Icons.bookmark_border_rounded,
                             size: 64,
                             color: isDark
-                                ? Colors.white.withOpacity(0.5)
-                                : Colors.black.withOpacity(0.3),
+                                ? Colors.white.withValues(alpha: 0.5)
+                                : Colors.black.withValues(alpha: 0.3),
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -152,8 +149,8 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             style: TextStyle(
                               fontSize: 18,
                               color: isDark
-                                  ? Colors.white.withOpacity(0.7)
-                                  : Colors.black.withOpacity(0.5),
+                                  ? Colors.white.withValues(alpha: 0.7)
+                                  : Colors.black.withValues(alpha: 0.5),
                             ),
                           ),
                           const SizedBox(height: 8),
@@ -162,8 +159,8 @@ class _BookmarksPageState extends State<BookmarksPage> {
                             style: TextStyle(
                               fontSize: 14,
                               color: isDark
-                                  ? Colors.white.withOpacity(0.5)
-                                  : Colors.black.withOpacity(0.4),
+                                  ? Colors.white.withValues(alpha: 0.5)
+                                  : Colors.black.withValues(alpha: 0.4),
                             ),
                           ),
                         ],
@@ -214,8 +211,8 @@ class _BookmarksPageState extends State<BookmarksPage> {
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: isDark
-                                        ? Colors.white.withOpacity(0.6)
-                                        : Colors.black.withOpacity(0.5),
+                                        ? Colors.white.withValues(alpha: 0.6)
+                                        : Colors.black.withValues(alpha: 0.5),
                                   ),
                                 ),
                               ),

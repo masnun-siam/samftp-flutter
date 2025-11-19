@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:samftp/features/bookmarks/data/models/bookmark_dto.dart';
 import 'package:samftp/features/bookmarks/domain/entities/bookmark.dart';
@@ -44,7 +45,7 @@ class BookmarkManager {
           .toList();
       return _bookmarksCache!;
     } catch (e) {
-      print('Error loading bookmarks: $e');
+      debugPrint('Error loading bookmarks: $e');
       _bookmarksCache = [];
       return _bookmarksCache!;
     }
@@ -60,7 +61,7 @@ class BookmarkManager {
       await file.writeAsString(json.encode(jsonList));
       _bookmarksCache = bookmarks;
     } catch (e) {
-      print('Error saving bookmarks: $e');
+      debugPrint('Error saving bookmarks: $e');
     }
   }
 
@@ -203,7 +204,7 @@ class BookmarkManager {
       await file.writeAsString(json.encode(jsonList));
       return true;
     } catch (e) {
-      print('Error exporting bookmarks: $e');
+      debugPrint('Error exporting bookmarks: $e');
       return false;
     }
   }
@@ -235,7 +236,7 @@ class BookmarkManager {
         return imported.length;
       }
     } catch (e) {
-      print('Error importing bookmarks: $e');
+      debugPrint('Error importing bookmarks: $e');
       return 0;
     }
   }

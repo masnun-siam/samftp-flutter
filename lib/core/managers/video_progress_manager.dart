@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -138,7 +139,7 @@ class VideoProgressManager {
     try {
       return VideoProgress.fromJson(json.decode(data) as Map<String, dynamic>);
     } catch (e) {
-      print('Error loading video progress: $e');
+      debugPrint('Error loading video progress: $e');
       return null;
     }
   }
@@ -341,7 +342,7 @@ class VideoProgressManager {
 
       return filePath;
     } catch (e) {
-      print('Error exporting progress: $e');
+      debugPrint('Error exporting progress: $e');
       return null;
     }
   }
@@ -432,7 +433,7 @@ class VideoProgressManager {
         itemsUpdated: updated,
       );
     } catch (e) {
-      print('Error importing progress: $e');
+      debugPrint('Error importing progress: $e');
       return ImportResult(
         success: false,
         itemsImported: 0,

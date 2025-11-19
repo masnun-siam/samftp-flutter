@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:samftp/core/models/cache_entry.dart';
 import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
@@ -168,7 +169,7 @@ class CacheManager {
       final contents = await file.readAsString();
       return json.decode(contents) as Map<String, dynamic>;
     } catch (e) {
-      print('Error loading cache: $e');
+      debugPrint('Error loading cache: $e');
       return {};
     }
   }
@@ -179,7 +180,7 @@ class CacheManager {
     try {
       await file.writeAsString(json.encode(cacheData));
     } catch (e) {
-      print('Error saving cache: $e');
+      debugPrint('Error saving cache: $e');
     }
   }
 }

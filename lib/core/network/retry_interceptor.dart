@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 /// Retry Interceptor with exponential backoff
 /// Retries failed requests with increasing delays: 1s, 2s, 4s
@@ -36,7 +37,7 @@ class RetryInterceptor extends Interceptor {
     final delayIndex = retryCount.clamp(0, retryDelays.length - 1);
     final delay = retryDelays[delayIndex];
 
-    print('Retrying request (attempt ${retryCount + 1}/$maxRetries) after ${delay.inSeconds}s...');
+    debugPrint('Retrying request (attempt ${retryCount + 1}/$maxRetries) after ${delay.inSeconds}s...');
 
     // Wait for the delay
     await Future.delayed(delay);

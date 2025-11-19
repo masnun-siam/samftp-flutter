@@ -723,7 +723,7 @@ class DownloadManager {
 
       return true;
     } on DioException catch (e) {
-      print('Download error: $e');
+      debugPrint('Download error: $e');
       return false;
     }
   }
@@ -1328,7 +1328,7 @@ class CacheManager {
       final contents = await file.readAsString();
       return json.decode(contents) as Map<String, dynamic>;
     } catch (e) {
-      print('Error loading cache: $e');
+      debugPrint('Error loading cache: $e');
       return {};
     }
   }
@@ -1338,7 +1338,7 @@ class CacheManager {
     try {
       await file.writeAsString(json.encode(cacheData));
     } catch (e) {
-      print('Error saving cache: $e');
+      debugPrint('Error saving cache: $e');
     }
   }
 }
@@ -1397,7 +1397,7 @@ class BookmarkManager {
           .toList();
       return _bookmarksCache!;
     } catch (e) {
-      print('Error loading bookmarks: $e');
+      debugPrint('Error loading bookmarks: $e');
       _bookmarksCache = [];
       return _bookmarksCache!;
     }
@@ -1410,7 +1410,7 @@ class BookmarkManager {
       await file.writeAsString(json.encode(jsonList));
       _bookmarksCache = bookmarks;
     } catch (e) {
-      print('Error saving bookmarks: $e');
+      debugPrint('Error saving bookmarks: $e');
     }
   }
 
@@ -1543,7 +1543,7 @@ class BookmarkManager {
       await file.writeAsString(json.encode(jsonList));
       return true;
     } catch (e) {
-      print('Error exporting bookmarks: $e');
+      debugPrint('Error exporting bookmarks: $e');
       return false;
     }
   }
@@ -1574,7 +1574,7 @@ class BookmarkManager {
         return imported.length;
       }
     } catch (e) {
-      print('Error importing bookmarks: $e');
+      debugPrint('Error importing bookmarks: $e');
       return 0;
     }
   }
@@ -1982,7 +1982,7 @@ class ConfigManager {
 
       return servers;
     } catch (e) {
-      print('Error loading servers: $e');
+      debugPrint('Error loading servers: $e');
       return [];
     }
   }
@@ -2019,7 +2019,7 @@ class ConfigManager {
       await file.writeAsString(jsonEncode(config));
       return true;
     } catch (e) {
-      print('Error saving servers: $e');
+      debugPrint('Error saving servers: $e');
       return false;
     }
   }

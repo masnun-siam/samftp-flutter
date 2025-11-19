@@ -49,7 +49,6 @@ class MyApp extends StatelessWidget {
         secondary: const Color(0xFF8B5CF6),
         tertiary: const Color(0xFFEC4899),
         surface: const Color(0xFFFAFAFA),
-        background: const Color(0xFFFFFFFF),
       ),
       scaffoldBackgroundColor: const Color(0xFFF5F5F7),
       appBarTheme: const AppBarTheme(
@@ -108,7 +107,6 @@ class MyApp extends StatelessWidget {
         secondary: const Color(0xFFA78BFA),
         tertiary: const Color(0xFFF472B6),
         surface: const Color(0xFF1F2937),
-        background: const Color(0xFF111827),
       ),
       scaffoldBackgroundColor: const Color(0xFF0F172A),
       appBarTheme: const AppBarTheme(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:samftp/features/home/data/datasources/datasource.dart';
 
@@ -10,7 +11,7 @@ void main() {
   test('should get a list of titles', () async {
     // arrange
     final result = await DataSourceImpl().getWebsiteFiles(uri);
-    print(result.map((e) => e.url));
+    debugPrint(result.map((e) => e.url).toString());
     expect(result, isA<List<({String? title, String? url})>>());
   });
 }

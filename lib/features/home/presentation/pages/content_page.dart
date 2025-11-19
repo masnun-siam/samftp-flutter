@@ -1,23 +1,23 @@
-import 'dart:ui';
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mime/mime.dart';
-import 'package:samftp/di/di.dart';
-import 'package:samftp/features/home/presentation/cubit/content_cubit.dart';
-import 'package:samftp/features/home/presentation/widgets/list_item.dart';
-import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
-import 'package:samftp/features/playlists/domain/entities/playlist_item.dart';
-import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
-import 'package:samftp/features/playlists/data/services/m3u_generator.dart';
-import 'package:samftp/features/player/presentation/pages/player_page.dart';
 import 'package:samftp/core/managers/bookmark_manager.dart';
 import 'package:samftp/core/managers/download_manager.dart';
 import 'package:samftp/core/managers/video_progress_manager.dart';
+import 'package:samftp/di/di.dart';
+import 'package:samftp/features/home/domain/entities/clickable_model/clickable_model.dart';
+import 'package:samftp/features/home/presentation/cubit/content_cubit.dart';
+import 'package:samftp/features/home/presentation/widgets/list_item.dart';
+import 'package:samftp/features/player/presentation/pages/player_page.dart';
+import 'package:samftp/features/playlists/data/services/m3u_generator.dart';
+import 'package:samftp/features/playlists/domain/entities/playlist_item.dart';
+import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:file_picker/file_picker.dart';
 
 import '../../../../core/routes/app_routes.gr.dart';
 import '../cubit/content_state.dart';
@@ -42,9 +42,8 @@ class ContentPage extends StatelessWidget {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            backgroundColor: (isDark
-                ? const Color(0xFF1F2937)
-                : Colors.white).withOpacity(0.7),
+            backgroundColor: (isDark ? const Color(0xFF1F2937) : Colors.white)
+                .withValues(alpha: 0.7),
             elevation: 0,
             title: Text(
               Uri.decodeFull(url.split('/').last),
@@ -61,12 +60,13 @@ class ContentPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: (isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.05)),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05)),
                     ),
                     child: IconButton(
                       style: TextButton.styleFrom(
-                        iconColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                        iconColor:
+                            isDark ? Colors.white : const Color(0xFF1F2937),
                         padding: const EdgeInsets.all(8),
                       ),
                       onPressed: () {
@@ -85,8 +85,8 @@ class ContentPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: (isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.black.withOpacity(0.05)),
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05)),
                   ),
                   child: PopupMenuButton(
                     icon: Icon(
@@ -108,7 +108,9 @@ class ContentPage extends StatelessWidget {
                               Icon(
                                 Icons.upload_file_rounded,
                                 size: 20,
-                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                color: isDark
+                                    ? const Color(0xFFF9FAFB)
+                                    : const Color(0xFF1F2937),
                               ),
                               const SizedBox(width: 12),
                               const Text('Export Progress'),
@@ -123,7 +125,9 @@ class ContentPage extends StatelessWidget {
                               Icon(
                                 Icons.download_rounded,
                                 size: 20,
-                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                color: isDark
+                                    ? const Color(0xFFF9FAFB)
+                                    : const Color(0xFF1F2937),
                               ),
                               const SizedBox(width: 12),
                               const Text('Import Progress'),
@@ -138,7 +142,9 @@ class ContentPage extends StatelessWidget {
                               Icon(
                                 Icons.analytics_rounded,
                                 size: 20,
-                                color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                color: isDark
+                                    ? const Color(0xFFF9FAFB)
+                                    : const Color(0xFF1F2937),
                               ),
                               const SizedBox(width: 12),
                               const Text('Progress Statistics'),
@@ -156,8 +162,8 @@ class ContentPage extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: (isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.05)),
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : Colors.black.withValues(alpha: 0.05)),
                     ),
                     child: PopupMenuButton(
                       icon: Icon(
@@ -179,7 +185,9 @@ class ContentPage extends StatelessWidget {
                                 Icon(
                                   Icons.play_circle_outline_rounded,
                                   size: 20,
-                                  color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                  color: isDark
+                                      ? const Color(0xFFF9FAFB)
+                                      : const Color(0xFF1F2937),
                                 ),
                                 const SizedBox(width: 12),
                                 const Text('Play All'),
@@ -196,7 +204,9 @@ class ContentPage extends StatelessWidget {
                                   Icon(
                                     Icons.share_rounded,
                                     size: 20,
-                                    color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                    color: isDark
+                                        ? const Color(0xFFF9FAFB)
+                                        : const Color(0xFF1F2937),
                                   ),
                                   const SizedBox(width: 12),
                                   const Text('Share Playlist (M3U)'),
@@ -212,7 +222,9 @@ class ContentPage extends StatelessWidget {
                                   Icon(
                                     Icons.play_arrow_rounded,
                                     size: 20,
-                                    color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                    color: isDark
+                                        ? const Color(0xFFF9FAFB)
+                                        : const Color(0xFF1F2937),
                                   ),
                                   const SizedBox(width: 12),
                                   const Text('Open Playlist with MPV'),
@@ -227,7 +239,9 @@ class ContentPage extends StatelessWidget {
                                 Icon(
                                   Icons.download_rounded,
                                   size: 20,
-                                  color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                  color: isDark
+                                      ? const Color(0xFFF9FAFB)
+                                      : const Color(0xFF1F2937),
                                 ),
                                 const SizedBox(width: 12),
                                 const Text('Download All'),
@@ -242,7 +256,9 @@ class ContentPage extends StatelessWidget {
                                 Icon(
                                   Icons.bookmark_add_rounded,
                                   size: 20,
-                                  color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF1F2937),
+                                  color: isDark
+                                      ? const Color(0xFFF9FAFB)
+                                      : const Color(0xFF1F2937),
                                 ),
                                 const SizedBox(width: 12),
                                 const Text('Bookmark Folder'),
@@ -259,12 +275,13 @@ class ContentPage extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: (isDark
-                        ? Colors.white.withOpacity(0.1)
-                        : Colors.black.withOpacity(0.05)),
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.05)),
                   ),
                   child: IconButton(
                     style: TextButton.styleFrom(
-                      iconColor: isDark ? Colors.white : const Color(0xFF1F2937),
+                      iconColor:
+                          isDark ? Colors.white : const Color(0xFF1F2937),
                       padding: const EdgeInsets.all(8),
                     ),
                     onPressed: () {
@@ -371,9 +388,8 @@ class ContentPage extends StatelessWidget {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
                   child: Container(
-                    color: (isDark
-                        ? const Color(0xFF0F172A)
-                        : Colors.white).withOpacity(0.3),
+                    color: (isDark ? const Color(0xFF0F172A) : Colors.white)
+                        .withValues(alpha: 0.3),
                     child: Column(
                       children: [
                         // Folder progress indicator
@@ -388,7 +404,9 @@ class ContentPage extends StatelessWidget {
                             padding: EdgeInsets.only(
                               left: 20,
                               right: 20,
-                              top: MediaQuery.of(context).padding.top + kToolbarHeight + 16,
+                              top: MediaQuery.of(context).padding.top +
+                                  kToolbarHeight +
+                                  16,
                               bottom: 20,
                             ),
                             itemBuilder: (context, index) {
@@ -397,7 +415,8 @@ class ContentPage extends StatelessWidget {
                                 base: base,
                               );
                             },
-                            separatorBuilder: (_, __) => const SizedBox(height: 12),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
                             itemCount: state.models.length,
                           ),
                         ),
@@ -429,7 +448,7 @@ class ContentPage extends StatelessWidget {
         } else {
           // play video
           final url = base + model.route;
-          print(url);
+          debugPrint(url);
           // Share.share(url);
           // context.router.push(
           //   VideoPlayerRoute(
@@ -537,14 +556,16 @@ class ContentPage extends StatelessWidget {
       // Generate M3U file
       final generator = M3uGenerator();
       final playlistName = Uri.decodeFull(url.split('/').last);
-      final m3uPath = await generator.generateM3uFile(playlistName, playlistItems);
+      final m3uPath =
+          await generator.generateM3uFile(playlistName, playlistItems);
 
-      // Share the M3U file
-      final result = await Share.shareXFiles(
-        [XFile(m3uPath)],
+      final shareParams = ShareParams(
         subject: '$playlistName Playlist',
         text: 'Playlist with ${playlistItems.length} items',
+        files: [XFile(m3uPath)],
       );
+      // Share the M3U file
+      final result = await SharePlus.instance.share(shareParams);
 
       if (result.status == ShareResultStatus.success) {
         // ignore: use_build_context_synchronously
@@ -578,7 +599,8 @@ class ContentPage extends StatelessWidget {
       // Generate M3U file
       final generator = M3uGenerator();
       final playlistName = Uri.decodeFull(url.split('/').last);
-      final m3uPath = await generator.generateM3uFile(playlistName, playlistItems);
+      final m3uPath =
+          await generator.generateM3uFile(playlistName, playlistItems);
 
       // Launch MPV with the playlist
       final result = await Process.start('mpv', [m3uPath]);
@@ -587,7 +609,8 @@ class ContentPage extends StatelessWidget {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Opening playlist with MPV (${playlistItems.length} items)'),
+          content:
+              Text('Opening playlist with MPV (${playlistItems.length} items)'),
         ),
       );
 
@@ -603,14 +626,16 @@ class ContentPage extends StatelessWidget {
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error opening MPV: $e\nMake sure MPV is installed and in PATH'),
+          content: Text(
+              'Error opening MPV: $e\nMake sure MPV is installed and in PATH'),
         ),
       );
     }
   }
 
   /// Download all media files in the folder
-  Future<void> _downloadAllMedia(BuildContext context, ContentLoaded state) async {
+  Future<void> _downloadAllMedia(
+      BuildContext context, ContentLoaded state) async {
     final mediaFiles = _getMediaFiles(state.models);
 
     if (mediaFiles.isEmpty) {
@@ -693,7 +718,8 @@ class ContentPage extends StatelessWidget {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Export Progress'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -732,12 +758,13 @@ class ContentPage extends StatelessWidget {
         return;
       }
 
-      // Share the file
-      await Share.shareXFiles(
-        [XFile(filePath)],
+      final shareParams = ShareParams(
         subject: 'Video Progress Export',
         text: 'Video progress data exported on ${DateTime.now().toString().split('.')[0]}',
+        files: [XFile(filePath)],
       );
+      // Share the file
+      await SharePlus.instance.share(shareParams);
 
       // ignore: use_build_context_synchronously
       ScaffoldMessenger.of(context).showSnackBar(
@@ -777,7 +804,8 @@ class ContentPage extends StatelessWidget {
       final mergeMode = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Import Mode'),
           content: const Column(
             mainAxisSize: MainAxisSize.min,
@@ -837,7 +865,8 @@ class ContentPage extends StatelessWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.check_circle, color: Colors.green),
@@ -887,7 +916,8 @@ class ContentPage extends StatelessWidget {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
               Icon(Icons.analytics_rounded, color: Colors.blue),
@@ -960,7 +990,8 @@ class _DownloadProgressDialog extends StatefulWidget {
   });
 
   @override
-  State<_DownloadProgressDialog> createState() => _DownloadProgressDialogState();
+  State<_DownloadProgressDialog> createState() =>
+      _DownloadProgressDialogState();
 }
 
 class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
@@ -1015,9 +1046,8 @@ class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
   @override
   Widget build(BuildContext context) {
     final totalFiles = widget.files.length;
-    final overallProgress = totalFiles > 0
-        ? (currentIndex + currentProgress) / totalFiles
-        : 0.0;
+    final overallProgress =
+        totalFiles > 0 ? (currentIndex + currentProgress) / totalFiles : 0.0;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -1045,7 +1075,8 @@ class _DownloadProgressDialogState extends State<_DownloadProgressDialog> {
             const SizedBox(height: 16),
             Text('Error: $errorMessage'),
           ] else ...[
-            const Icon(Icons.check_circle_outline, color: Colors.green, size: 48),
+            const Icon(Icons.check_circle_outline,
+                color: Colors.green, size: 48),
             const SizedBox(height: 16),
             const Text('All files downloaded successfully!'),
           ],
@@ -1127,7 +1158,8 @@ class _FolderProgressIndicator extends StatefulWidget {
   });
 
   @override
-  State<_FolderProgressIndicator> createState() => _FolderProgressIndicatorState();
+  State<_FolderProgressIndicator> createState() =>
+      _FolderProgressIndicatorState();
 }
 
 class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
@@ -1146,7 +1178,8 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
 
     // Get all video URLs in this folder
     final videoUrls = widget.models
-        .where((model) => model.isFile && _isMediaFile(model.route.toLowerCase()))
+        .where(
+            (model) => model.isFile && _isMediaFile(model.route.toLowerCase()))
         .map((model) => widget.base + model.route)
         .toList()
         .cast<String>();
@@ -1184,7 +1217,9 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _folderProgress == null || !_folderProgress!.hasAnyProgress) {
+    if (_isLoading ||
+        _folderProgress == null ||
+        !_folderProgress!.hasAnyProgress) {
       return const SizedBox.shrink();
     }
 
@@ -1203,23 +1238,25 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
           end: Alignment.bottomRight,
           colors: widget.isDark
               ? [
-                  const Color(0xFF1F2937).withOpacity(0.9),
-                  const Color(0xFF374151).withOpacity(0.8),
+                  const Color(0xFF1F2937).withValues(alpha: 0.9),
+                  const Color(0xFF374151).withValues(alpha: 0.8),
                 ]
               : [
-                  Colors.white.withOpacity(0.95),
-                  Colors.white.withOpacity(0.9),
+                  Colors.white.withValues(alpha: 0.95),
+                  Colors.white.withValues(alpha: 0.9),
                 ],
         ),
         boxShadow: [
           BoxShadow(
-            color: (widget.isDark ? Colors.black : Colors.grey.shade400).withOpacity(0.2),
+            color: (widget.isDark ? Colors.black : Colors.grey.shade400)
+                .withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: (widget.isDark ? Colors.white : Colors.black).withOpacity(0.1),
+          color: (widget.isDark ? Colors.white : Colors.black)
+              .withValues(alpha: 0.1),
           width: 1,
         ),
       ),
@@ -1234,7 +1271,9 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
                     : Icons.play_circle_outline_rounded,
                 color: _folderProgress!.isFullyCompleted
                     ? Colors.green
-                    : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+                    : (widget.isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF3B82F6)),
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -1266,13 +1305,14 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: _folderProgress!.isFullyCompleted
-                      ? Colors.green.withOpacity(0.15)
+                      ? Colors.green.withValues(alpha: 0.15)
                       : (widget.isDark
-                          ? const Color(0xFF60A5FA).withOpacity(0.15)
-                          : const Color(0xFF3B82F6).withOpacity(0.15)),
+                          ? const Color(0xFF60A5FA).withValues(alpha: 0.15)
+                          : const Color(0xFF3B82F6).withValues(alpha: 0.15)),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1282,7 +1322,9 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
                     fontSize: 14,
                     color: _folderProgress!.isFullyCompleted
                         ? Colors.green
-                        : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+                        : (widget.isDark
+                            ? const Color(0xFF60A5FA)
+                            : const Color(0xFF3B82F6)),
                   ),
                 ),
               ),
@@ -1294,12 +1336,14 @@ class _FolderProgressIndicatorState extends State<_FolderProgressIndicator> {
             child: LinearProgressIndicator(
               value: _folderProgress!.overallProgress,
               backgroundColor: widget.isDark
-                  ? Colors.white.withOpacity(0.1)
-                  : Colors.black.withOpacity(0.1),
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.black.withValues(alpha: 0.1),
               valueColor: AlwaysStoppedAnimation<Color>(
                 _folderProgress!.isFullyCompleted
                     ? Colors.green
-                    : (widget.isDark ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6)),
+                    : (widget.isDark
+                        ? const Color(0xFF60A5FA)
+                        : const Color(0xFF3B82F6)),
               ),
               minHeight: 8,
             ),
