@@ -504,17 +504,36 @@ class _ListItemState extends State<ListItem>
                     if (widget.model.isFile) {
                       final url = widget.base + widget.model.route;
                       if (Platform.isAndroid) {
-                        ExternalVideoPlayerLauncher.launchOtherPlayer(
-                            url, MIME.video, {
+                        // Prepare arguments with title
+                        final Map<String, dynamic> args = {
                           "title": (widget.model.title.endsWith('/')
                                   ? widget.model.title.substring(
                                       0, widget.model.title.length - 1)
                                   : widget.model.title)
                               .split('/')
                               .last,
-                        });
+                        };
+
+                        // Pass saved position to external player for auto-resume
+                        if (_videoProgress != null &&
+                            _videoProgress!.position.inMilliseconds > 0 &&
+                            !_videoProgress!.isCompleted) {
+                          args["position"] =
+                              _videoProgress!.position.inMilliseconds;
+                        }
+
+                        ExternalVideoPlayerLauncher.launchOtherPlayer(
+                            url, MIME.video, args);
                       } else if (Platform.isMacOS) {
-                        Process.run('/opt/homebrew/bin/mpv', [url],
+                        // Build mpv command with resume position
+                        final List<String> mpvArgs = [url];
+                        if (_videoProgress != null &&
+                            _videoProgress!.position.inSeconds > 0 &&
+                            !_videoProgress!.isCompleted) {
+                          mpvArgs.add(
+                              '--start=${_videoProgress!.position.inSeconds}');
+                        }
+                        Process.run('/opt/homebrew/bin/mpv', mpvArgs,
                             runInShell: true);
                       } else {
                         SharePlus.instance.share(

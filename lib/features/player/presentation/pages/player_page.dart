@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:html_character_entities/html_character_entities.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
+import 'package:samftp/core/managers/config_manager.dart';
 import 'package:samftp/core/managers/video_progress_manager.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_cubit.dart';
 import 'package:samftp/features/playlists/presentation/cubit/playlist_state.dart';
@@ -43,10 +44,12 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   // Video progress tracking
   final VideoProgressManager _progressManager = VideoProgressManager();
+  final ConfigManager _configManager = ConfigManager();
   Timer? _progressTimer;
   bool _isCompleted = false;
   Duration? _savedPosition;
   bool _hasShownResumeDialog = false;
+  bool _autoResumeEnabled = true; // Default to auto-resume
 
   // Check if running on desktop
   bool get isDesktop =>
@@ -78,6 +81,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   /// Initialize progress manager and load saved position
   Future<void> _initializeProgressManager() async {
     await _progressManager.init();
+    await _configManager.init();
+
+    // Load auto-resume setting
+    _autoResumeEnabled = await _configManager.getAutoResume();
+
     final progress = await _progressManager.getProgress(widget.url);
 
     if (progress != null) {
@@ -94,18 +102,27 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       await player.open(Media(url));
 
-      // Show resume dialog if saved position exists and not already shown
+      // Handle resume if saved position exists and not already shown
       if (_savedPosition != null &&
           _savedPosition!.inSeconds > 5 &&
           !_hasShownResumeDialog) {
         _hasShownResumeDialog = true;
-        // Pause the player until user decides
-        await player.pause();
 
-        // Show resume dialog after a short delay to ensure player is ready
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showResumeDialog();
-        });
+        if (_autoResumeEnabled) {
+          // Auto-resume: automatically seek to saved position
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            await player.seek(_savedPosition!);
+            await player.play();
+          });
+        } else {
+          // Show dialog: pause the player until user decides
+          await player.pause();
+
+          // Show resume dialog after a short delay to ensure player is ready
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _showResumeDialog();
+          });
+        }
       }
 
       // Listen for video completion on desktop
@@ -125,17 +142,18 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       vpController = vp.VideoPlayerController.networkUrl(Uri.parse(url));
       await vpController.initialize();
 
-      // Show resume dialog if saved position exists and not already shown
-      if (_savedPosition != null &&
+      // Determine if we need to handle resume
+      final needsResume = _savedPosition != null &&
           _savedPosition!.inSeconds > 5 &&
-          !_hasShownResumeDialog) {
-        _hasShownResumeDialog = true;
-        // Don't auto-play if we need to show resume dialog
+          !_hasShownResumeDialog;
 
-        // Show resume dialog after a short delay to ensure player is ready
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _showResumeDialog();
-        });
+      if (needsResume) {
+        _hasShownResumeDialog = true;
+
+        if (_autoResumeEnabled) {
+          // Auto-resume: seek to saved position immediately after initialization
+          await vpController.seekTo(_savedPosition!);
+        }
       }
 
       // Listen for video completion
@@ -143,15 +161,20 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
       chewieController = ChewieController(
         videoPlayerController: vpController,
-        autoPlay: _savedPosition == null ||
-            _savedPosition!.inSeconds <=
-                5, // Only auto-play if no resume needed
+        autoPlay: !needsResume || _autoResumeEnabled, // Auto-play if no resume needed OR auto-resume is enabled
         looping: false,
         allowedScreenSleep: false,
         allowFullScreen: true,
         allowMuting: true,
         showControls: true,
       );
+
+      // Show dialog after Chewie is created (only if auto-resume is disabled)
+      if (needsResume && !_autoResumeEnabled) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showResumeDialog();
+        });
+      }
 
       // Start progress tracking for mobile
       _startProgressTracking();

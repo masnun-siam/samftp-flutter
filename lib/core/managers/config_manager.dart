@@ -233,4 +233,16 @@ class ConfigManager {
     final prefs = await SharedPreferences.getInstance();
     return await prefs.setInt('cache_ttl', minutes);
   }
+
+  /// Get auto-resume setting (resume without asking)
+  Future<bool> getAutoResume() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('auto_resume') ?? true; // Default to true for auto-resume
+  }
+
+  /// Set auto-resume setting
+  Future<bool> setAutoResume(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    return await prefs.setBool('auto_resume', enabled);
+  }
 }
